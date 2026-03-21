@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Nuestra App de Tareas</title>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <style>
+        :root { --bg: #f0f2f5; --card: #ffffff; --primary: #6c5ce7; --accent: #00cec9; --text: #2d3436; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        #mascot-container { text-align: center; margin-bottom: 20px; background: var(--card); padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
+        #mascot { width: 120px; height: 120px; background: #fab1a0; border-radius: 50%; margin: 0 auto 10px; transition: all 0.5s ease; display: flex; align-items: center; justify-content: center; font-size: 50px; filter: grayscale(1) blur(1px); }
+        #progress-bar { width: 100%; height: 10px; background: #dfe6e9; border-radius: 5px; overflow: hidden; }
+        #progress-fill { height: 100%; width: 0%; background: var(--accent); transition: width 0.5s ease; }
+        .input-group { background: var(--card); padding: 15px; border-radius: 15px; width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+        input, select, button { padding: 12px; border-radius: 8px; border: 1px solid #ddd; font-size: 16px; }
+        button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; }
+        #task-list { width: 100%; max-width: 400px; list-style: none; padding: 0; }
+        .task-item { background: var(--card); margin-bottom: 10px; padding: 15px; border-radius: 12px; display: flex; align-items: center; gap: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .task-item.done { opacity: 0.6; text-decoration: line-through; }
+        .handle { cursor: grab; color: #ccc; font-size: 20px; padding: 0 10px; }
+        .task-info { flex-grow: 1; }
+        .task-user { font-size: 10px; background: #eee; padding: 2px 6px; border-radius: 4px; }
+        .delete-btn { background: #ff7675; border: none; color: white; border-radius: 5px; padding: 5px 10px; }
+    </style>
+</head>
+<body>
+
+    <div id="mascot-container">
+        <div id="mascot">🐱</div>
+        <p id="status-text">Cargando...</p>
+        <div id="progress-bar"><div id="progress-fill"></div></div>
+    </div>
+
+    <div class="input-group">
+        <input type="text" id="task-input" placeholder="Nueva tarea...">
+        <div style="display:flex; gap:5px;">
+            <select id="user-select" style="flex:1;">
+                <option value="Jato">Jato</option>
+                <option value="Kathy">Kathy</option>
+                <option value="Ambos">Ambos</option>
+            </select>
+            <select id="freq-select" style="flex:1;">
+                <option value="Diaria">Diaria</option>
+                <option value="Semanal">Semanal</option>
+            </select>
+        </div>
+        <button id="add-btn">Añadir Tarea</button>
+    </div>
+
+    <ul id="task-list"></ul>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, onSnapshot, addDoc, updateDoc, doc, deleteDoc, query, orderBy, writeBatch } 
+        from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // Tu configuración que pegaste arriba
+        const firebaseConfig = {
+            apiKey: "AIzaSyD3MEtx7ocC6orDM0qh3cdgfcgrnVMxyhU",
+            authDomain: "app-tareas-jato.firebaseapp.com",
+            projectId: "app-tareas-jato",
+            storageBucket: "app-tareas-jato.firebasestorage.app",
+            messagingSenderId: "488313855493",
+            appId: "1:488313855493:web:f99991fae84cf6b969c66c"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const tasksCol = collection(db, "tareas");
+        let tasks = [];
+
+        // --- LEER EN TIEMPO REAL ---
+        onSnapshot(query(tasksCol, orderBy("posicion")), (snapshot) => {
+            tasks = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+            render();
+        });
+
+        // --- AÑADIR TAREA ---
+        document.getElementById('add-btn').onclick = async () => {
+            const input = document.getElementById('task-input');
+            if (!input.value) return;
+            await addDoc(tasksCol, {
+                text: input.value,
+                user: document.getElementById('user-select').value,
+                freq: document.getElementById('freq-select').value,
+                done: false,
+                posicion: tasks.length
+            });
+            input.value = '';
+        };
+
+        // --- FUNCIONES GLOBALES (necesarias para botones onclick en módulos) ---
+        window.toggleTask = async (id, currentStatus) => {
+            await updateDoc(doc(db, "tareas", id), { done: !currentStatus });
+        };
+
+        window.deleteTask = async (id) => {
+            await deleteDoc(doc(db, "tareas", id));
+        };
+
+        // --- REORDENAR (DRAG & DROP) ---
+        Sortable.create(document.getElementById('task-list'), {
+            handle: '.handle',
+            animation: 150,
+            onEnd: async () => {
+                const items = document.querySelectorAll('.task-item');
+                const batch = writeBatch(db);
+                items.forEach((item, index) => {
+                    const taskRef = doc(db, "tareas", item.dataset.id);
+                    batch.update(taskRef, { posicion: index });
+                });
+                await batch.commit();
+            }
+        });
+
+        function render() {
+            const list = document.getElementById('task-list');
+            list.innerHTML = '';
+            tasks.forEach(task => {
+                const li = document.createElement('li');
+                li.className = `task-item ${task.done ? 'done' : ''}`;
+                li.dataset.id = task.id;
+                li.innerHTML = `
+                    <span class="handle">☰</span>
+                    <input type="checkbox" ${task.done ? 'checked' : ''} onclick="toggleTask('${task.id}', ${task.done})">
+                    <div class="task-info">
+                        <div>${task.text}</div>
+                        <span class="task-user">${task.user} | ${task.freq}</span>
+                    </div>
+                    <button class="delete-btn" onclick="deleteTask('${task.id}')">x</button>
+                `;
+                list.appendChild(li);
+            });
+            updateMascot();
+        }
+
+        function updateMascot() {
+            const total = tasks.length;
+            const done = tasks.filter(t => t.done).length;
+            const percent = total === 0 ? 0 : (done / total) * 100;
+            const mascot = document.getElementById('mascot');
+            document.getElementById('progress-fill').style.width = percent + "%";
+            
+            const intensity = 1 - (percent / 100);
+            mascot.style.filter = `grayscale(${intensity}) blur(${intensity}px)`;
+            document.getElementById('status-text').innerText = percent === 100 && total > 0 ? "¡Reluciente! ✨" : "A limpiar...";
+        }
+    </script>
+</body>
+</html>
