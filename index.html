@@ -6,22 +6,42 @@
     <title>Nuestra App de Tareas</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
-        :root { --bg: #f0f2f5; --card: #ffffff; --primary: #6c5ce7; --accent: #00cec9; --text: #2d3436; }
+        :root { 
+            --bg: #f0f2f5; 
+            --card: #ffffff; 
+            --primary: #6c5ce7; 
+            --accent: #00cec9; 
+            --text: #2d3436; 
+            --danger: #ff7675;
+        }
         body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        
+        /* --- SECCIÓN MASCOTA --- */
         #mascot-container { text-align: center; margin-bottom: 20px; background: var(--card); padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
         #mascot { width: 120px; height: 120px; background: #fab1a0; border-radius: 50%; margin: 0 auto 10px; transition: all 0.5s ease; display: flex; align-items: center; justify-content: center; font-size: 50px; filter: grayscale(1) blur(1px); }
         #progress-bar { width: 100%; height: 10px; background: #dfe6e9; border-radius: 5px; overflow: hidden; }
         #progress-fill { height: 100%; width: 0%; background: var(--accent); transition: width 0.5s ease; }
+
+        /* --- BOTONES DE CONTROL (NUEVOS) --- */
+        .controls { display: flex; gap: 10px; width: 100%; max-width: 400px; margin-bottom: 15px; }
+        .btn-control { flex: 1; padding: 10px; border-radius: 8px; font-size: 11px; font-weight: bold; cursor: pointer; border: 1px solid rgba(0,0,0,0.1); transition: opacity 0.2s; }
+        .btn-uncheck { background: #a29bfe; color: #2d3436; }
+        .btn-reset { background: #fab1a0; color: #d63031; }
+        .btn-control:active { opacity: 0.7; }
+
+        /* --- FORMULARIO --- */
         .input-group { background: var(--card); padding: 15px; border-radius: 15px; width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
-        input, select, button { padding: 12px; border-radius: 8px; border: 1px solid #ddd; font-size: 16px; }
-        button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; }
+        input, select, .add-btn { padding: 12px; border-radius: 8px; border: 1px solid #ddd; font-size: 16px; }
+        .add-btn { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; }
+
+        /* --- LISTA --- */
         #task-list { width: 100%; max-width: 400px; list-style: none; padding: 0; }
         .task-item { background: var(--card); margin-bottom: 10px; padding: 15px; border-radius: 12px; display: flex; align-items: center; gap: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .task-item.done { opacity: 0.6; text-decoration: line-through; }
+        .task-item.done { opacity: 0.5; text-decoration: line-through; }
         .handle { cursor: grab; color: #ccc; font-size: 20px; padding: 0 10px; }
         .task-info { flex-grow: 1; }
-        .task-user { font-size: 10px; background: #eee; padding: 2px 6px; border-radius: 4px; }
-        .delete-btn { background: #ff7675; border: none; color: white; border-radius: 5px; padding: 5px 10px; }
+        .task-user { font-size: 10px; background: #eee; padding: 2px 6px; border-radius: 4px; color: #636e72; }
+        .delete-btn { background: var(--danger); border: none; color: white; border-radius: 5px; padding: 5px 10px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -30,6 +50,12 @@
         <div id="mascot">🐱</div>
         <p id="status-text">Cargando...</p>
         <div id="progress-bar"><div id="progress-fill"></div></div>
+    </div>
+
+    <!-- BOTONES DE RESET -->
+    <div class="controls">
+        <button class="btn-control btn-uncheck" id="uncheck-all-btn">🔄 REINICIAR DÍA</button>
+        <button class="btn-control btn-reset" id="reset-all-btn">🗑️ BORRAR TODO</button>
     </div>
 
     <div class="input-group">
@@ -45,7 +71,7 @@
                 <option value="Semanal">Semanal</option>
             </select>
         </div>
-        <button id="add-btn">Añadir Tarea</button>
+        <button class="add-btn" id="add-btn">Añadir Tarea</button>
     </div>
 
     <ul id="task-list"></ul>
@@ -55,7 +81,7 @@
         import { getFirestore, collection, onSnapshot, addDoc, updateDoc, doc, deleteDoc, query, orderBy, writeBatch } 
         from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // Tu configuración que pegaste arriba
+        // Tu configuración de Firebase (Mantenemos la misma)
         const firebaseConfig = {
             apiKey: "AIzaSyD3MEtx7ocC6orDM0qh3cdgfcgrnVMxyhU",
             authDomain: "app-tareas-jato.firebaseapp.com",
@@ -70,7 +96,7 @@
         const tasksCol = collection(db, "tareas");
         let tasks = [];
 
-        // --- LEER EN TIEMPO REAL ---
+        // --- ESCUCHAR CAMBIOS EN TIEMPO REAL ---
         onSnapshot(query(tasksCol, orderBy("posicion")), (snapshot) => {
             tasks = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
             render();
@@ -90,7 +116,31 @@
             input.value = '';
         };
 
-        // --- FUNCIONES GLOBALES (necesarias para botones onclick en módulos) ---
+        // --- REINICIAR DÍA (DESMARCAR TODO) ---
+        document.getElementById('uncheck-all-btn').onclick = async () => {
+            if (tasks.length === 0) return;
+            if (!confirm("¿Desmarcar todas las tareas para empezar un nuevo día?")) return;
+            const batch = writeBatch(db);
+            tasks.forEach(t => {
+                const ref = doc(db, "tareas", t.id);
+                batch.update(ref, { done: false });
+            });
+            await batch.commit();
+        };
+
+        // --- RESET TOTAL (BORRAR TODO) ---
+        document.getElementById('reset-all-btn').onclick = async () => {
+            if (tasks.length === 0) return;
+            if (!confirm("⚠️ ¿BORRAR TODO? Esto eliminará todas las tareas de la base de datos.")) return;
+            const batch = writeBatch(db);
+            tasks.forEach(t => {
+                const ref = doc(db, "tareas", t.id);
+                batch.delete(ref);
+            });
+            await batch.commit();
+        };
+
+        // --- FUNCIONES GLOBALES ---
         window.toggleTask = async (id, currentStatus) => {
             await updateDoc(doc(db, "tareas", id), { done: !currentStatus });
         };
@@ -99,7 +149,7 @@
             await deleteDoc(doc(db, "tareas", id));
         };
 
-        // --- REORDENAR (DRAG & DROP) ---
+        // --- DRAG & DROP ---
         Sortable.create(document.getElementById('task-list'), {
             handle: '.handle',
             animation: 150,
@@ -144,7 +194,11 @@
             
             const intensity = 1 - (percent / 100);
             mascot.style.filter = `grayscale(${intensity}) blur(${intensity}px)`;
-            document.getElementById('status-text').innerText = percent === 100 && total > 0 ? "¡Reluciente! ✨" : "A limpiar...";
+            
+            const status = document.getElementById('status-text');
+            if (total === 0) status.innerText = "¡Añade una tarea!";
+            else if (percent === 100) status.innerText = "¡Reluciente! ✨";
+            else status.innerText = `Progreso: ${Math.round(percent)}%`;
         }
     </script>
 </body>
