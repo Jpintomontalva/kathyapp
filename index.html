@@ -5,10 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Nuestra App de Tareas</title>
     
+    <!-- Iconos para Celular y Navegador -->
     <link rel="icon" type="image/webp" href="icon.webp">
-    <link rel="apple-touch-icon" href="icon.webp"> <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
-    
+    <link rel="apple-touch-icon" href="icon.webp">
+
+    <!-- Librerías Externas: Confeti y Ordenar Lista -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    
     <style>
         :root { 
             --bg: #f0f2f5; 
@@ -20,13 +24,13 @@
         }
         body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
         
-        /* --- SECCIÓN CASA DE GATOS (CORREGIDA PARA EJE Z) --- */
+        /* --- SECCIÓN CASA DE GATOS (COMPOSITE 3D) --- */
         #mascot-container { text-align: center; margin-bottom: 20px; background: var(--card); padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
         
         #cat-house {
             position: relative;
             width: 100%;
-            height: 200px; /* Altura fija para la escena composite */
+            height: 200px; 
             display: block;
             overflow: visible;
             margin-bottom: 15px;
@@ -36,28 +40,26 @@
             position: absolute;
             top: 0;
             left: 0;
-            width: 100%; /* Escalamos la composición completa */
+            width: 100%;
             height: 100%;
-            object-fit: contain; /* Mantenemos la proporción de la escena */
-            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Animación suave */
+            object-fit: contain;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             opacity: 1;
             transform: scale(1);
         }
 
-        /* --- SOLUCIÓN DEL EJE Z: Asignamos profundidades específicas --- */
-        #cat-Boti   { z-index: 1; }  /* Al fondo (derecha atrás) */
-        #cat-Sammy  { z-index: 2; }  /* Al fondo (izquierda atrás, ligeramente sobre Boti) */
-        
-        #cat-Pelusa { z-index: 10; } /* Primer plano (centro) */
-        #cat-Alfi   { z-index: 11; } /* Primer plano (derecha adelante) */
-        #cat-Michi  { z-index: 12; } /* Primer plano (izquierda adelante) */
-        #cat-Fonchi { z-index: 13; } /* Primer plano (extremo izquierdo adelante) */
+        /* ORDEN DEL EJE Z (Profundidad Artística) */
+        #cat-Boti   { z-index: 1; }  
+        #cat-Sammy  { z-index: 2; }  
+        #cat-Pelusa { z-index: 10; } 
+        #cat-Alfi   { z-index: 11; } 
+        #cat-Michi  { z-index: 12; } 
+        #cat-Fonchi { z-index: 13; } 
 
         .hidden {
-            /* Ya no quitamos el elemento, solo lo hacemos invisible para no mover el composite */
             opacity: 0;
-            transform: scale(0.5); /* Aparecen desde 'chiquito' */
-            pointer-events: none; /* No se pueden tocar mientras están ocultos */
+            transform: scale(0.5);
+            pointer-events: none;
         }
 
         #progress-bar { width: 100%; height: 10px; background: #dfe6e9; border-radius: 5px; overflow: hidden; }
@@ -127,7 +129,6 @@
         import { getFirestore, collection, onSnapshot, addDoc, updateDoc, doc, deleteDoc, query, orderBy, writeBatch } 
         from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // Mantenemos tu Firebase Config original
         const firebaseConfig = {
             apiKey: "AIzaSyD3MEtx7ocC6orDM0qh3cdgfcgrnVMxyhU",
             authDomain: "app-tareas-jato.firebaseapp.com",
@@ -142,12 +143,13 @@
         const tasksCol = collection(db, "tareas");
         let tasks = [];
 
-        // --- PRECARGA DE IMÁGENES ---
+        // --- SISTEMA DE AUDIO (Mantenemos una sola instancia) ---
+        const audioMiau = new Audio('miau.mp3');
+        audioMiau.load(); 
+
+        // --- PRECARGA DE GATOS ---
         const catNames = ['Pelusa', 'Fonchi', 'Boti', 'Sammy', 'Michi', 'Alfi'];
         catNames.forEach(cat => { const img = new Image(); img.src = `${cat}.webp`; });
-        // Precarga de icono y sonido
-        new Image().src = "icon.webp";
-        new Audio('miau.mp3').load();
 
         // --- TIEMPO REAL ---
         onSnapshot(query(tasksCol, orderBy("posicion")), (snapshot) => {
@@ -155,13 +157,14 @@
             render();
         });
 
-        // --- AÑADIR (MODIFICADA: SONIDO MIAU) ---
+        // --- AÑADIR (CON AUDIO) ---
         document.getElementById('add-btn').onclick = async () => {
             const input = document.getElementById('task-input');
             if (!input.value) return;
             
-            // === NUEVO: REPRODUCIR MIAU ===
-            new Audio('miau.mp3').play();
+            // Reproducir sonido con manejo de error (necesario para móviles)
+            audioMiau.currentTime = 0; 
+            audioMiau.play().catch(e => console.log("Audio en espera de interacción"));
             
             await addDoc(tasksCol, {
                 text: input.value,
@@ -173,7 +176,7 @@
             input.value = '';
         };
 
-        // --- BOTONES DE RESET ---
+        // --- BOTONES DE CONTROL ---
         document.getElementById('uncheck-all-btn').onclick = async () => {
             if (tasks.length === 0) return;
             if (!confirm("¿Desmarcar todas las tareas?")) return;
@@ -184,7 +187,7 @@
 
         document.getElementById('reset-all-btn').onclick = async () => {
             if (tasks.length === 0) return;
-            if (!confirm("⚠️ ¿BORRAR TODO permanentemente?")) return;
+            if (!confirm("⚠️ ¿BORRAR TODO?")) return;
             const batch = writeBatch(db);
             tasks.forEach(t => batch.delete(doc(db, "tareas", t.id)));
             await batch.commit();
@@ -232,7 +235,6 @@
             updateMascot();
         }
 
-        // --- ACTUALIZAR MASCOTA (MODIFICADA: CONFETI) ---
         function updateMascot() {
             const total = tasks.length;
             const done = tasks.filter(t => t.done).length;
@@ -241,7 +243,6 @@
             catNames.forEach((name, index) => {
                 const threshold = (index + 1) * 16.6;
                 const catImg = document.getElementById(`cat-${name}`);
-                
                 if (percent >= threshold) {
                     catImg.classList.remove('hidden');
                 } else {
@@ -254,7 +255,7 @@
             
             if (total === 0) status.innerText = "¡Añade una tarea para reunir a la familia!";
             else if (percent === 100) {
-                // === NUEVO: ACTIVAR CONFETI ===
+                // EFECTO DE CONFETI
                 if (window.confetti) {
                     confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
                 }
