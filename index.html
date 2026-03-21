@@ -16,31 +16,37 @@
         }
         body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
         
-        /* --- SECCIÓN CASA DE GATOS --- */
+        /* --- SECCIÓN CASA DE GATOS (CORREGIDA) --- */
         #mascot-container { text-align: center; margin-bottom: 20px; background: var(--card); padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
         
         #cat-house {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            align-items: center;
-            gap: 8px;
-            min-height: 140px;
+            /* ESTILO CORREGIDO: Usamos posición relativa para apilar los gatos */
+            position: relative;
+            width: 100%;
+            height: 200px; /* Ajustamos una altura fija para la escena composite */
+            display: block; /* No usamos flex ni wrap */
+            overflow: visible;
             margin-bottom: 15px;
         }
 
         .cat-img {
-            height: 100px; /* Tamaño ideal para móvil */
-            width: auto;
-            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            /* ESTILO CORREGIDO: Apilamos todos los gatos en el mismo origen (0,0) */
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%; /* Escalamos la composición completa para que encaje */
+            height: 100%;
+            object-fit: contain; /* Mantenemos la proporción de la escena */
+            transition: all 0.5s ease; /* Animación suave de aparición */
+            opacity: 1; /* Por defecto están visibles y con su opacidad completa */
+            transform: scale(1);
         }
 
         .hidden {
-            opacity: 0;
-            transform: scale(0.2) translateY(20px);
-            pointer-events: none;
-            width: 0; /* Para que no ocupen espacio antes de aparecer */
-            margin: 0;
+            /* CLASE HIDDEN CORREGIDA: Ya no quitamos el elemento, solo lo hacemos invisible */
+            opacity: 0; /* Hacemos invisible */
+            transform: scale(0.5); /* Hacemos aparecer desde 'chiquito' */
+            pointer-events: none; /* No se pueden tocar mientras están ocultos */
         }
 
         #progress-bar { width: 100%; height: 10px; background: #dfe6e9; border-radius: 5px; overflow: hidden; }
@@ -70,7 +76,6 @@
 <body>
 
     <div id="mascot-container">
-        <!-- AQUÍ APARECERÁN TUS 6 GATOS -->
         <div id="cat-house">
             <img id="cat-Pelusa" src="Pelusa.webp" alt="Pelusa" class="cat-img hidden">
             <img id="cat-Fonchi" src="Fonchi.webp" alt="Fonchi" class="cat-img hidden">
@@ -216,6 +221,7 @@
             catNames.forEach((name, index) => {
                 const threshold = (index + 1) * 16.6;
                 const catImg = document.getElementById(`cat-${name}`);
+                
                 if (percent >= threshold) {
                     catImg.classList.remove('hidden');
                 } else {
