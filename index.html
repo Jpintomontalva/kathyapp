@@ -16,36 +16,43 @@
         }
         body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
         
-        /* --- SECCIÓN CASA DE GATOS (CORREGIDA) --- */
+        /* --- SECCIÓN CASA DE GATOS (CORREGIDA PARA EJE Z) --- */
         #mascot-container { text-align: center; margin-bottom: 20px; background: var(--card); padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
         
         #cat-house {
-            /* ESTILO CORREGIDO: Usamos posición relativa para apilar los gatos */
             position: relative;
             width: 100%;
-            height: 200px; /* Ajustamos una altura fija para la escena composite */
-            display: block; /* No usamos flex ni wrap */
+            height: 200px; /* Altura fija para la escena composite */
+            display: block;
             overflow: visible;
             margin-bottom: 15px;
         }
 
         .cat-img {
-            /* ESTILO CORREGIDO: Apilamos todos los gatos en el mismo origen (0,0) */
             position: absolute;
             top: 0;
             left: 0;
-            width: 100%; /* Escalamos la composición completa para que encaje */
+            width: 100%; /* Escalamos la composición completa */
             height: 100%;
             object-fit: contain; /* Mantenemos la proporción de la escena */
-            transition: all 0.5s ease; /* Animación suave de aparición */
-            opacity: 1; /* Por defecto están visibles y con su opacidad completa */
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Animación suave */
+            opacity: 1;
             transform: scale(1);
         }
 
+        /* --- SOLUCIÓN DEL EJE Z: Asignamos profundidades específicas --- */
+        #cat-Boti   { z-index: 1; }  /* Al fondo (derecha atrás) */
+        #cat-Sammy  { z-index: 2; }  /* Al fondo (izquierda atrás, ligeramente sobre Boti) */
+        
+        #cat-Pelusa { z-index: 10; } /* Primer plano (centro) */
+        #cat-Alfi   { z-index: 11; } /* Primer plano (derecha adelante) */
+        #cat-Michi  { z-index: 12; } /* Primer plano (izquierda adelante) */
+        #cat-Fonchi { z-index: 13; } /* Primer plano (extremo izquierdo adelante) */
+
         .hidden {
-            /* CLASE HIDDEN CORREGIDA: Ya no quitamos el elemento, solo lo hacemos invisible */
-            opacity: 0; /* Hacemos invisible */
-            transform: scale(0.5); /* Hacemos aparecer desde 'chiquito' */
+            /* Ya no quitamos el elemento, solo lo hacemos invisible para no mover el composite */
+            opacity: 0;
+            transform: scale(0.5); /* Aparecen desde 'chiquito' */
             pointer-events: none; /* No se pueden tocar mientras están ocultos */
         }
 
@@ -116,6 +123,7 @@
         import { getFirestore, collection, onSnapshot, addDoc, updateDoc, doc, deleteDoc, query, orderBy, writeBatch } 
         from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+        // Mantenemos tu Firebase Config original, totalmente blindada
         const firebaseConfig = {
             apiKey: "AIzaSyD3MEtx7ocC6orDM0qh3cdgfcgrnVMxyhU",
             authDomain: "app-tareas-jato.firebaseapp.com",
@@ -130,7 +138,7 @@
         const tasksCol = collection(db, "tareas");
         let tasks = [];
 
-        // --- PRECARGA DE IMÁGENES ---
+        // --- PRECARGA DE IMÁGENES PARA EVITAR PARPADEOS ---
         const catNames = ['Pelusa', 'Fonchi', 'Boti', 'Sammy', 'Michi', 'Alfi'];
         catNames.forEach(cat => { const img = new Image(); img.src = `${cat}.webp`; });
 
@@ -219,9 +227,11 @@
             const percent = total === 0 ? 0 : (done / total) * 100;
             
             catNames.forEach((name, index) => {
+                // Umbrales de 16.6% para desbloquear cada gato
                 const threshold = (index + 1) * 16.6;
                 const catImg = document.getElementById(`cat-${name}`);
                 
+                // La clase 'hidden' ahora solo cambia opacidad/escala, el z-index ya está fijo arriba
                 if (percent >= threshold) {
                     catImg.classList.remove('hidden');
                 } else {
