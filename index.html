@@ -34,9 +34,27 @@
 
         /* Estilo Composite 3D */
         .cat-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; }
-        .cat-unit { transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        
+        /* === ANIMACIÓN: RESPIRACIÓN SUTIL === */
+        @keyframes breathe {
+            0% { transform: scale(1) translateY(0px); }
+            50% { transform: scale(1.01) translateY(-3px); }
+            100% { transform: scale(1) translateY(0px); }
+        }
 
-        /* Z-INDEX PERSPECTIVA INTERNA */
+        .cat-unit:not(.hidden) { 
+            animation: breathe 3.5s ease-in-out infinite; 
+        }
+        
+        /* Variamos los retardos para que no se muevan en bloque */
+        #cat-Pelusa { animation-delay: 0s; }
+        #cat-Fonchi { animation-delay: 0.5s; }
+        #cat-Boti   { animation-delay: 1.2s; }
+        #cat-Sammy  { animation-delay: 0.8s; }
+        #cat-Michi  { animation-delay: 1.5s; }
+        #cat-Alfi   { animation-delay: 2.1s; }
+
+        /* Z-INDEX PERSPECTIVA */
         #cat-fondo  { z-index: 0; }
         #cat-Boti   { z-index: 1; }  #cat-Sammy  { z-index: 2; }  
         #cat-Pelusa { z-index: 10; } #cat-Alfi   { z-index: 11; } 
@@ -52,15 +70,8 @@
         }
         #speech-bubble::after { content: ''; position: absolute; bottom: -8px; left: 20px; border-width: 8px 8px 0; border-style: solid; border-color: white transparent; }
 
-        /* RACHAS (GALLETAS) - CORREGIDO PARA MÓVIL */
-        #streak-container { 
-            position: absolute; 
-            top: 10px; 
-            left: 20px; 
-            display: flex; 
-            gap: 5px; 
-            z-index: 99; /* FUEZA A ESTAR ARRIBA EN MÓVIL */
-        }
+        /* RACHAS (GALLETAS) */
+        #streak-container { position: absolute; top: 10px; left: 20px; display: flex; gap: 5px; z-index: 99; }
         .cookie-icon { width: 25px; height: 25px; }
 
         #progress-bar { width: 100%; height: 10px; background: #dfe6e9; border-radius: 5px; overflow: hidden; }
@@ -151,20 +162,17 @@
         const audioMiau = new Audio('miau.mp3');
         const phrases = ["¡Purr-fecto!", "¡Eres genial!", "¡Miau-nífico!", "¡Ronroneos!", "¡Casi listo!", "¡Equipazo!"];
 
-        // --- MODO OSCURO ---
         window.toggleDarkMode = () => {
             document.body.classList.toggle('dark-mode');
             localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
         };
         if(localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark-mode');
 
-        // --- ESCUCHAR DATOS ---
         onSnapshot(query(tasksCol, orderBy("posicion")), (snap) => {
             tasks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
             render();
         });
 
-        // --- RACHAS (GALLETAS) ---
         async function updateStreaks(isFull) {
             const snap = await getDoc(statsDoc);
             let data = snap.exists() ? snap.data() : { streak: 0, lastDate: "" };
@@ -187,7 +195,6 @@
         }
         updateStreaks(false);
 
-        // --- OPERACIONES ---
         document.getElementById('add-btn').onclick = async () => {
             const input = document.getElementById('task-input');
             if (!input.value) return;
@@ -263,12 +270,15 @@
             document.getElementById('progress-fill').style.width = percent + "%";
             const status = document.getElementById('status-text');
             
-            if (percent === 100 && total > 0) {
+            // === ACTUALIZACIÓN: MARCADOR 6/12 ===
+            if (total === 0) {
+                status.innerText = "¡Añade una tarea!";
+            } else if (percent === 100) {
                 confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-                status.innerText = "¡Familia completa! 🎉✨";
+                status.innerText = `¡Familia completa! 🎉 (${done}/${total})`;
                 updateStreaks(true);
             } else {
-                status.innerText = total === 0 ? "¡Añade una tarea!" : `Michis reunidos: ${currentCatCount} / 6`;
+                status.innerText = `Michis: ${currentCatCount}/6 | Tareas: ${done}/${total}`;
             }
         }
 
