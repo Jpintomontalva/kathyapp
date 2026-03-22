@@ -5,11 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Nuestra App de Tareas</title>
     
-    <!-- Iconos para Celular y Navegador -->
     <link rel="icon" type="image/webp" href="icon.webp">
     <link rel="apple-touch-icon" href="icon.webp">
 
-    <!-- Librerías Externas -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     
@@ -26,30 +24,39 @@
         
         #mascot-container { text-align: center; margin-bottom: 20px; background: var(--card); padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
         
+        /* --- SECCIÓN CASA DE GATOS (CORREGIDA PARA FONDO ADAPTADO) --- */
         #cat-house {
             position: relative;
             width: 100%;
-            height: 200px; 
+            height: 200px; /* Altura fija para la escena composite */
             display: block;
             overflow: visible;
             margin-bottom: 15px;
         }
 
+        /* Estilo base para todas las imágenes (Gatos y Fondo) */
         .cat-img {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            object-fit: contain;
-            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            opacity: 1;
+            object-fit: contain; /* CRÍTICO: Mantiene la proporción 4010x2390 y alinea todo */
             transform: scale(1);
+            opacity: 1;
         }
 
-        /* EJE Z: Perspectiva para que no se tapen */
+        /* Estilos específicos para los GATOS (añade transiciones y animaciones) */
+        .cat-unit {
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* --- SOLUCIÓN DEL EJE Z: Asignamos profundidades específicas --- */
+        #cat-fondo  { z-index: 0; }  /* Al fondo absoluto (Siempe presente) */
+        
         #cat-Boti   { z-index: 1; }  
         #cat-Sammy  { z-index: 2; }  
+        
         #cat-Pelusa { z-index: 10; } 
         #cat-Alfi   { z-index: 11; } 
         #cat-Michi  { z-index: 12; } 
@@ -57,22 +64,25 @@
 
         .hidden {
             opacity: 0;
-            transform: scale(0.5);
-            pointer-events: none;
+            transform: scale(0.5); /* Aparecen desde 'chiquito' */
+            pointer-events: none; /* No se pueden tocar mientras están ocultos */
         }
 
         #progress-bar { width: 100%; height: 10px; background: #dfe6e9; border-radius: 5px; overflow: hidden; }
         #progress-fill { height: 100%; width: 0%; background: var(--accent); transition: width 0.5s ease; }
 
+        /* --- BOTONES DE CONTROL --- */
         .controls { display: flex; gap: 10px; width: 100%; max-width: 400px; margin-bottom: 15px; }
         .btn-control { flex: 1; padding: 10px; border-radius: 8px; font-size: 11px; font-weight: bold; cursor: pointer; border: 1px solid rgba(0,0,0,0.1); transition: opacity 0.2s; }
         .btn-uncheck { background: #a29bfe; color: #2d3436; }
         .btn-reset { background: #fab1a0; color: #d63031; }
 
+        /* --- FORMULARIO --- */
         .input-group { background: var(--card); padding: 15px; border-radius: 15px; width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
         input, select, .add-btn { padding: 12px; border-radius: 8px; border: 1px solid #ddd; font-size: 16px; }
         .add-btn { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; }
 
+        /* --- LISTA --- */
         #task-list { width: 100%; max-width: 400px; list-style: none; padding: 0; }
         .task-item { background: var(--card); margin-bottom: 10px; padding: 15px; border-radius: 12px; display: flex; align-items: center; gap: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .task-item.done { opacity: 0.5; text-decoration: line-through; }
@@ -86,12 +96,14 @@
 
     <div id="mascot-container">
         <div id="cat-house">
-            <img id="cat-Pelusa" src="Pelusa.webp" alt="Pelusa" class="cat-img hidden">
-            <img id="cat-Fonchi" src="Fonchi.webp" alt="Fonchi" class="cat-img hidden">
-            <img id="cat-Boti"   src="Boti.webp"   alt="Boti"   class="cat-img hidden">
-            <img id="cat-Sammy"  src="Sammy.webp"  alt="Sammy"  class="cat-img hidden">
-            <img id="cat-Michi"  src="Michi.webp"  alt="Michi"  class="cat-img hidden">
-            <img id="cat-Alfi"   src="Alfi.webp"   alt="Alfi"   class="cat-img hidden">
+            <img id="cat-fondo" src="fondo.webp" alt="Fondo" class="cat-img">
+            
+            <img id="cat-Pelusa" src="Pelusa.webp" alt="Pelusa" class="cat-img cat-unit hidden">
+            <img id="cat-Fonchi" src="Fonchi.webp" alt="Fonchi" class="cat-img cat-unit hidden">
+            <img id="cat-Boti"   src="Boti.webp"   alt="Boti"   class="cat-img cat-unit hidden">
+            <img id="cat-Sammy"  src="Sammy.webp"  alt="Sammy"  class="cat-img cat-unit hidden">
+            <img id="cat-Michi"  src="Michi.webp"  alt="Michi"  class="cat-img cat-unit hidden">
+            <img id="cat-Alfi"   src="Alfi.webp"   alt="Alfi"   class="cat-img cat-unit hidden">
         </div>
         <p id="status-text">Cargando familia...</p>
         <div id="progress-bar"><div id="progress-fill"></div></div>
@@ -139,20 +151,25 @@
         const tasksCol = collection(db, "tareas");
         
         let tasks = [];
-        let previousCatCount = -1; // Rastreador de gatos en pantalla
+        let previousCatCount = -1; // Rastreador de progreso
 
         // --- SISTEMA DE AUDIO ---
         const audioMiau = new Audio('miau.mp3');
         audioMiau.load();
 
+        // --- PRECARGA DE IMÁGENES (Añadimos Fondo e Icono) ---
+        new Image().src = 'fondo.webp';
+        new Image().src = 'icon.webp';
         const catNames = ['Pelusa', 'Fonchi', 'Boti', 'Sammy', 'Michi', 'Alfi'];
         catNames.forEach(cat => { const img = new Image(); img.src = `${cat}.webp`; });
 
+        // --- TIEMPO REAL ---
         onSnapshot(query(tasksCol, orderBy("posicion")), (snapshot) => {
             tasks = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
             render();
         });
 
+        // --- AÑADIR ---
         document.getElementById('add-btn').onclick = async () => {
             const input = document.getElementById('task-input');
             if (!input.value) return;
@@ -166,6 +183,7 @@
             input.value = '';
         };
 
+        // --- BOTONES DE RESET ---
         document.getElementById('uncheck-all-btn').onclick = async () => {
             if (tasks.length === 0) return;
             if (!confirm("¿Desmarcar todas las tareas?")) return;
@@ -182,6 +200,7 @@
             await batch.commit();
         };
 
+        // --- FUNCIONES GLOBALES ---
         window.toggleTask = async (id, currentStatus) => {
             await updateDoc(doc(db, "tareas", id), { done: !currentStatus });
         };
@@ -189,6 +208,7 @@
             await deleteDoc(doc(db, "tareas", id));
         };
 
+        // --- DRAG & DROP ---
         Sortable.create(document.getElementById('task-list'), {
             handle: '.handle', animation: 150,
             onEnd: async () => {
@@ -222,18 +242,17 @@
             updateMascot();
         }
 
-        // --- LA MAGIA DEL MIAU AL APARECER ---
+        // --- LA MAGIA DEL MIAU AL APARECER (CORREGIDA) ---
         function updateMascot() {
             const total = tasks.length;
             const done = tasks.filter(t => t.done).length;
             const percent = total === 0 ? 0 : (done / total) * 100;
             const currentCatCount = Math.floor(percent / 16.6);
             
-            // Si el número de gatos aumentó respecto a la última vez, ¡MIAU!
-            // Evitamos el sonido en la carga inicial (cuando previousCatCount es -1)
+            // Si el número de gatos aumentó, ¡MIAU!
             if (previousCatCount !== -1 && currentCatCount > previousCatCount) {
                 audioMiau.currentTime = 0;
-                audioMiau.play().catch(e => console.log("Interacción requerida para audio"));
+                audioMiau.play().catch(e => console.log("Interacción requerida"));
             }
             previousCatCount = currentCatCount;
 
@@ -252,7 +271,7 @@
             
             if (total === 0) {
                 status.innerText = "¡Añade una tarea para reunir a la familia!";
-                previousCatCount = 0; 
+                previousCatCount = 0; // Reseteamos el contador para cuando reinicien el día
             } else if (percent === 100) {
                 if (window.confetti) {
                     confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
