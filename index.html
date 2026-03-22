@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Nuestra App de Tareas</title>
     
-    <link rel="icon" type="image/webp" href="icon.webp">
+    <link rel="icon" type="image/web" href="icon.webp">
     <link rel="apple-touch-icon" href="icon.webp">
 
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
@@ -16,7 +16,7 @@
             --bg: #f0f2f5; --card: #ffffff; --primary: #6c5ce7; --accent: #00cec9; 
             --text: #2d3436; --danger: #ff7675; --border: #ddd;
         }
-        /* Colores de Categorías (Pasteles) */
+        /* Categorías Pasteles */
         .cat-urgente { border-left: 6px solid #fab1a0 !important; }
         .cat-salud { border-left: 6px solid #55efc4 !important; }
         .cat-casa { border-left: 6px solid #74b9ff !important; }
@@ -32,21 +32,15 @@
         
         #cat-house { position: relative; width: 100%; height: 200px; display: block; overflow: visible; margin-bottom: 15px; }
 
-        /* Estilo Composite 3D */
         .cat-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; }
         
-        /* === ANIMACIÓN: RESPIRACIÓN SUTIL === */
         @keyframes breathe {
             0% { transform: scale(1) translateY(0px); }
             50% { transform: scale(1.01) translateY(-3px); }
             100% { transform: scale(1) translateY(0px); }
         }
-
-        .cat-unit:not(.hidden) { 
-            animation: breathe 3.5s ease-in-out infinite; 
-        }
+        .cat-unit:not(.hidden) { animation: breathe 3.5s ease-in-out infinite; }
         
-        /* Variamos los retardos para que no se muevan en bloque */
         #cat-Pelusa { animation-delay: 0s; }
         #cat-Fonchi { animation-delay: 0.5s; }
         #cat-Boti   { animation-delay: 1.2s; }
@@ -54,7 +48,6 @@
         #cat-Michi  { animation-delay: 1.5s; }
         #cat-Alfi   { animation-delay: 2.1s; }
 
-        /* Z-INDEX PERSPECTIVA */
         #cat-fondo  { z-index: 0; }
         #cat-Boti   { z-index: 1; }  #cat-Sammy  { z-index: 2; }  
         #cat-Pelusa { z-index: 10; } #cat-Alfi   { z-index: 11; } 
@@ -62,7 +55,6 @@
 
         .hidden { opacity: 0; transform: scale(0.5); pointer-events: none; }
 
-        /* BOCADILLO DE TEXTO */
         #speech-bubble {
             position: absolute; top: 10px; right: 20px; background: white; color: #2d3436;
             padding: 8px 12px; border-radius: 15px; font-size: 12px; font-weight: bold;
@@ -70,14 +62,12 @@
         }
         #speech-bubble::after { content: ''; position: absolute; bottom: -8px; left: 20px; border-width: 8px 8px 0; border-style: solid; border-color: white transparent; }
 
-        /* RACHAS (GALLETAS) */
         #streak-container { position: absolute; top: 10px; left: 20px; display: flex; gap: 5px; z-index: 99; }
         .cookie-icon { width: 25px; height: 25px; }
 
         #progress-bar { width: 100%; height: 10px; background: #dfe6e9; border-radius: 5px; overflow: hidden; }
         #progress-fill { height: 100%; width: 0%; background: var(--accent); transition: width 0.5s ease; }
 
-        /* CONTROLES */
         .top-btns { display: flex; justify-content: flex-end; width: 100%; max-width: 400px; margin-bottom: 10px; }
         .btn-mode { background: var(--card); border: 1px solid var(--border); border-radius: 50%; width: 40px; height: 40px; cursor: pointer; font-size: 20px; color: var(--text); }
 
@@ -91,6 +81,10 @@
         #task-list { width: 100%; max-width: 440px; list-style: none; padding: 0; }
         .task-item { background: var(--card); margin-bottom: 10px; padding: 12px; border-radius: 12px; display: flex; align-items: center; gap: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .task-item.done { opacity: 0.5; text-decoration: line-through; }
+        
+        /* Muesca de arrastre: Solo aquí se activa el drag */
+        .handle { cursor: grab; color: #ccc; font-size: 20px; padding: 0 10px; user-select: none; }
+        
         .task-info { flex-grow: 1; }
         .task-meta { font-size: 10px; color: #636e72; margin-top: 4px; }
         
@@ -177,7 +171,6 @@
             const snap = await getDoc(statsDoc);
             let data = snap.exists() ? snap.data() : { streak: 0, lastDate: "" };
             const today = new Date().toDateString();
-            
             if (isFull && data.lastDate !== today) {
                 data.streak++;
                 data.lastDate = today;
@@ -190,7 +183,7 @@
             const container = document.getElementById('streak-container');
             container.innerHTML = '';
             for(let i=0; i<Math.min(count, 5); i++) {
-                container.innerHTML += `<img src="galleta.webp" class="cookie-icon" title="Racha: ${count} días">`;
+                container.innerHTML += `<img src="galleta.webp" class="cookie-icon">`;
             }
         }
         updateStreaks(false);
@@ -206,7 +199,9 @@
             input.value = '';
         };
 
-        window.toggleTask = async (id, status) => { await updateDoc(doc(db, "tareas", id), { done: !status }); };
+        window.toggleTask = async (id, status) => { 
+            await updateDoc(doc(db, "tareas", id), { done: !status }); 
+        };
         
         window.editTask = async (id, oldText) => {
             const newText = prompt("Editar tarea:", oldText);
@@ -235,7 +230,9 @@
             tasks.forEach(t => {
                 const li = document.createElement('li');
                 li.className = `task-item ${t.category} ${t.done ? 'done' : ''}`;
+                li.dataset.id = t.id; 
                 li.innerHTML = `
+                    <span class="handle">☰</span>
                     <input type="checkbox" ${t.done ? 'checked' : ''} onclick="toggleTask('${t.id}', ${t.done})">
                     <div class="task-info">
                         <div>${t.text}</div>
@@ -270,7 +267,6 @@
             document.getElementById('progress-fill').style.width = percent + "%";
             const status = document.getElementById('status-text');
             
-            // === ACTUALIZACIÓN: MARCADOR 6/12 ===
             if (total === 0) {
                 status.innerText = "¡Añade una tarea!";
             } else if (percent === 100) {
@@ -290,13 +286,14 @@
         }
 
         Sortable.create(document.getElementById('task-list'), {
-            animation: 150, onEnd: async () => {
+            handle: '.handle', 
+            animation: 150,
+            onEnd: async () => {
                 const items = document.querySelectorAll('.task-item');
                 const batch = writeBatch(db);
                 items.forEach((item, index) => {
-                    const textContent = item.querySelector('.task-info div').innerText;
-                    const t = tasks.find(x => x.text === textContent);
-                    if(t) batch.update(doc(db, "tareas", t.id), { posicion: index });
+                    const taskId = item.dataset.id;
+                    batch.update(doc(db, "tareas", taskId), { posicion: index });
                 });
                 await batch.commit();
             }
