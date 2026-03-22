@@ -13,91 +13,86 @@
     
     <style>
         :root { 
-            --bg: #f0f2f5; 
-            --card: #ffffff; 
-            --primary: #6c5ce7; 
-            --accent: #00cec9; 
-            --text: #2d3436; 
-            --danger: #ff7675;
+            --bg: #f0f2f5; --card: #ffffff; --primary: #6c5ce7; --accent: #00cec9; 
+            --text: #2d3436; --danger: #ff7675; --border: #ddd;
         }
-        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
-        
-        #mascot-container { text-align: center; margin-bottom: 20px; background: var(--card); padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
-        
-        /* --- SECCIÓN CASA DE GATOS (CORREGIDA PARA FONDO ADAPTADO) --- */
-        #cat-house {
-            position: relative;
-            width: 100%;
-            height: 200px; /* Altura fija para la escena composite */
-            display: block;
-            overflow: visible;
-            margin-bottom: 15px;
+        /* Colores de Categorías (Pasteles) */
+        .cat-urgente { border-left: 6px solid #fab1a0 !important; }
+        .cat-salud { border-left: 6px solid #55efc4 !important; }
+        .cat-casa { border-left: 6px solid #74b9ff !important; }
+        .cat-general { border-left: 6px solid #dfe6e9 !important; }
+
+        body.dark-mode {
+            --bg: #2d3436; --card: #353b48; --text: #f5f6fa; --border: #718093;
         }
 
-        /* Estilo base para todas las imágenes (Gatos y Fondo) */
-        .cat-img {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: contain; /* CRÍTICO: Mantiene la proporción 4010x2390 y alinea todo */
-            transform: scale(1);
-            opacity: 1;
-        }
-
-        /* Estilos específicos para los GATOS (añade transiciones y animaciones) */
-        .cat-unit {
-            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        /* --- SOLUCIÓN DEL EJE Z: Asignamos profundidades específicas --- */
-        #cat-fondo  { z-index: 0; }  /* Al fondo absoluto (Siempe presente) */
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; transition: background 0.3s; }
         
-        #cat-Boti   { z-index: 1; }  
-        #cat-Sammy  { z-index: 2; }  
+        #mascot-container { text-align: center; margin-bottom: 20px; background: var(--card); padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 400px; position: relative; }
         
-        #cat-Pelusa { z-index: 10; } 
-        #cat-Alfi   { z-index: 11; } 
-        #cat-Michi  { z-index: 12; } 
-        #cat-Fonchi { z-index: 13; } 
+        #cat-house { position: relative; width: 100%; height: 200px; display: block; overflow: visible; margin-bottom: 15px; }
 
-        .hidden {
-            opacity: 0;
-            transform: scale(0.5); /* Aparecen desde 'chiquito' */
-            pointer-events: none; /* No se pueden tocar mientras están ocultos */
+        /* Estilo Composite 3D */
+        .cat-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; }
+        .cat-unit { transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+
+        /* Z-INDEX PERSPECTIVA */
+        #cat-fondo  { z-index: 0; }
+        #cat-Boti   { z-index: 1; }  #cat-Sammy  { z-index: 2; }  
+        #cat-Pelusa { z-index: 10; } #cat-Alfi   { z-index: 11; } 
+        #cat-Michi  { z-index: 12; } #cat-Fonchi { z-index: 13; } 
+
+        .hidden { opacity: 0; transform: scale(0.5); pointer-events: none; }
+
+        /* BOCADILLO DE TEXTO */
+        #speech-bubble {
+            position: absolute; top: 10px; right: 20px; background: white; color: #2d3436;
+            padding: 8px 12px; border-radius: 15px; font-size: 12px; font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1); opacity: 0; transition: opacity 0.5s; z-index: 100;
         }
+        #speech-bubble::after { content: ''; position: absolute; bottom: -8px; left: 20px; border-width: 8px 8px 0; border-style: solid; border-color: white transparent; }
+
+        /* RACHAS (GALLETAS) */
+        #streak-container { position: absolute; top: 10px; left: 20px; display: flex; gap: 5px; }
+        .cookie-icon { width: 25px; height: 25px; }
 
         #progress-bar { width: 100%; height: 10px; background: #dfe6e9; border-radius: 5px; overflow: hidden; }
         #progress-fill { height: 100%; width: 0%; background: var(--accent); transition: width 0.5s ease; }
 
-        /* --- BOTONES DE CONTROL --- */
-        .controls { display: flex; gap: 10px; width: 100%; max-width: 400px; margin-bottom: 15px; }
-        .btn-control { flex: 1; padding: 10px; border-radius: 8px; font-size: 11px; font-weight: bold; cursor: pointer; border: 1px solid rgba(0,0,0,0.1); transition: opacity 0.2s; }
-        .btn-uncheck { background: #a29bfe; color: #2d3436; }
-        .btn-reset { background: #fab1a0; color: #d63031; }
+        /* CONTROLES */
+        .top-btns { display: flex; justify-content: flex-end; width: 100%; max-width: 400px; margin-bottom: 10px; }
+        .btn-mode { background: var(--card); border: 1px solid var(--border); border-radius: 50%; width: 40px; height: 40px; cursor: pointer; font-size: 20px; color: var(--text); }
 
-        /* --- FORMULARIO --- */
+        .controls { display: flex; gap: 10px; width: 100%; max-width: 440px; margin-bottom: 15px; }
+        .btn-control { flex: 1; padding: 10px; border-radius: 8px; font-size: 11px; font-weight: bold; cursor: pointer; border: 1px solid rgba(0,0,0,0.1); }
+
         .input-group { background: var(--card); padding: 15px; border-radius: 15px; width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
-        input, select, .add-btn { padding: 12px; border-radius: 8px; border: 1px solid #ddd; font-size: 16px; }
+        input, select, .add-btn { padding: 12px; border-radius: 8px; border: 1px solid var(--border); font-size: 14px; background: var(--card); color: var(--text); }
         .add-btn { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; }
 
-        /* --- LISTA --- */
-        #task-list { width: 100%; max-width: 400px; list-style: none; padding: 0; }
-        .task-item { background: var(--card); margin-bottom: 10px; padding: 15px; border-radius: 12px; display: flex; align-items: center; gap: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        #task-list { width: 100%; max-width: 440px; list-style: none; padding: 0; }
+        .task-item { background: var(--card); margin-bottom: 10px; padding: 12px; border-radius: 12px; display: flex; align-items: center; gap: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .task-item.done { opacity: 0.5; text-decoration: line-through; }
-        .handle { cursor: grab; color: #ccc; font-size: 20px; padding: 0 10px; }
         .task-info { flex-grow: 1; }
-        .task-user { font-size: 10px; background: #eee; padding: 2px 6px; border-radius: 4px; color: #636e72; }
-        .delete-btn { background: var(--danger); border: none; color: white; border-radius: 5px; padding: 5px 10px; cursor: pointer; }
+        .task-meta { font-size: 10px; color: #636e72; margin-top: 4px; }
+        
+        .btn-action { border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; color: white; font-size: 12px; }
+        .btn-edit { background: #fdcb6e; margin-right: 5px; }
+        .btn-del { background: var(--danger); }
     </style>
 </head>
 <body>
 
+    <div class="top-btns">
+        <button class="btn-mode" onclick="toggleDarkMode()">🌙</button>
+    </div>
+
     <div id="mascot-container">
+        <div id="streak-container"></div>
+        <div id="speech-bubble">¡Miau-nífico!</div>
+        
         <div id="cat-house">
             <img id="cat-fondo" src="fondo.webp" alt="Fondo" class="cat-img">
-            
             <img id="cat-Pelusa" src="Pelusa.webp" alt="Pelusa" class="cat-img cat-unit hidden">
             <img id="cat-Fonchi" src="Fonchi.webp" alt="Fonchi" class="cat-img cat-unit hidden">
             <img id="cat-Boti"   src="Boti.webp"   alt="Boti"   class="cat-img cat-unit hidden">
@@ -110,22 +105,15 @@
     </div>
 
     <div class="controls">
-        <button class="btn-control btn-uncheck" id="uncheck-all-btn">🔄 REINICIAR DÍA</button>
-        <button class="btn-control btn-reset" id="reset-all-btn">🗑️ BORRAR TODO</button>
+        <button class="btn-control" style="background:#a29bfe" onclick="resetDay()">🔄 REINICIAR DÍA</button>
+        <button class="btn-control" style="background:#fab1a0" onclick="resetAll()">🗑️ BORRAR TODO</button>
     </div>
 
     <div class="input-group">
-        <input type="text" id="task-input" placeholder="Nueva tarea...">
+        <input type="text" id="task-input" placeholder="¿Qué haremos hoy?">
         <div style="display:flex; gap:5px;">
-            <select id="user-select" style="flex:1;">
-                <option value="Jato">Jato</option>
-                <option value="Kathy">Kathy</option>
-                <option value="Ambos">Ambos</option>
-            </select>
-            <select id="freq-select" style="flex:1;">
-                <option value="Diaria">Diaria</option>
-                <option value="Semanal">Semanal</option>
-            </select>
+            <select id="user-select" style="flex:1;"><option value="Jato">Jato</option><option value="Kathy">Kathy</option><option value="Ambos">Ambos</option></select>
+            <select id="cat-select" style="flex:1;"><option value="cat-general">General</option><option value="cat-urgente">Urgente</option><option value="cat-salud">Salud</option><option value="cat-casa">Casa</option></select>
         </div>
         <button class="add-btn" id="add-btn">Añadir Tarea</button>
     </div>
@@ -134,7 +122,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, addDoc, updateDoc, doc, deleteDoc, query, orderBy, writeBatch } 
+        import { getFirestore, collection, onSnapshot, addDoc, updateDoc, doc, deleteDoc, query, orderBy, writeBatch, getDoc, setDoc } 
         from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -149,138 +137,152 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const tasksCol = collection(db, "tareas");
-        
+        const statsDoc = doc(db, "stats", "global");
+
         let tasks = [];
-        let previousCatCount = -1; // Rastreador de progreso
-
-        // --- SISTEMA DE AUDIO ---
+        let previousCatCount = -1;
         const audioMiau = new Audio('miau.mp3');
-        audioMiau.load();
+        const phrases = ["¡Purr-fecto!", "¡Eres genial!", "¡Miau-nífico!", "¡Ronroneos!", "¡Casi listo!", "¡Equipazo!"];
 
-        // --- PRECARGA DE IMÁGENES (Añadimos Fondo e Icono) ---
-        new Image().src = 'fondo.webp';
-        new Image().src = 'icon.webp';
-        const catNames = ['Pelusa', 'Fonchi', 'Boti', 'Sammy', 'Michi', 'Alfi'];
-        catNames.forEach(cat => { const img = new Image(); img.src = `${cat}.webp`; });
+        // --- MODO OSCURO ---
+        window.toggleDarkMode = () => {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+        };
+        if(localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark-mode');
 
-        // --- TIEMPO REAL ---
-        onSnapshot(query(tasksCol, orderBy("posicion")), (snapshot) => {
-            tasks = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        // --- ESCUCHAR DATOS ---
+        onSnapshot(query(tasksCol, orderBy("posicion")), (snap) => {
+            tasks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
             render();
         });
 
-        // --- AÑADIR ---
+        // --- RACHAS (GALLETAS) ---
+        async function updateStreaks(isFull) {
+            const snap = await getDoc(statsDoc);
+            let data = snap.exists() ? snap.data() : { streak: 0, lastDate: "" };
+            const today = new Date().toDateString();
+            
+            if (isFull && data.lastDate !== today) {
+                data.streak++;
+                data.lastDate = today;
+                await setDoc(statsDoc, data);
+            }
+            renderCookies(data.streak);
+        }
+
+        function renderCookies(count) {
+            const container = document.getElementById('streak-container');
+            container.innerHTML = '';
+            for(let i=0; i<Math.min(count, 5); i++) {
+                container.innerHTML += `<img src="galleta.webp" class="cookie-icon" title="Racha: ${count} días">`;
+            }
+        }
+        updateStreaks(false);
+
+        // --- OPERACIONES ---
         document.getElementById('add-btn').onclick = async () => {
             const input = document.getElementById('task-input');
             if (!input.value) return;
             await addDoc(tasksCol, {
-                text: input.value,
-                user: document.getElementById('user-select').value,
-                freq: document.getElementById('freq-select').value,
-                done: false,
-                posicion: tasks.length
+                text: input.value, user: document.getElementById('user-select').value,
+                category: document.getElementById('cat-select').value,
+                done: false, posicion: tasks.length
             });
             input.value = '';
         };
 
-        // --- BOTONES DE RESET ---
-        document.getElementById('uncheck-all-btn').onclick = async () => {
-            if (tasks.length === 0) return;
-            if (!confirm("¿Desmarcar todas las tareas?")) return;
+        window.toggleTask = async (id, status) => { await updateDoc(doc(db, "tareas", id), { done: !status }); };
+        
+        window.editTask = async (id, oldText) => {
+            const newText = prompt("Editar tarea:", oldText);
+            if (newText) await updateDoc(doc(db, "tareas", id), { text: newText });
+        };
+
+        window.deleteTask = async (id) => { await deleteDoc(doc(db, "tareas", id)); };
+
+        window.resetDay = async () => {
+            if (!confirm("¿Reiniciar para un nuevo día?")) return;
             const batch = writeBatch(db);
             tasks.forEach(t => batch.update(doc(db, "tareas", t.id), { done: false }));
             await batch.commit();
         };
 
-        document.getElementById('reset-all-btn').onclick = async () => {
-            if (tasks.length === 0) return;
-            if (!confirm("⚠️ ¿BORRAR TODO?")) return;
+        window.resetAll = async () => {
+            if (!confirm("⚠️ BORRAR TODO?")) return;
             const batch = writeBatch(db);
             tasks.forEach(t => batch.delete(doc(db, "tareas", t.id)));
             await batch.commit();
         };
 
-        // --- FUNCIONES GLOBALES ---
-        window.toggleTask = async (id, currentStatus) => {
-            await updateDoc(doc(db, "tareas", id), { done: !currentStatus });
-        };
-        window.deleteTask = async (id) => {
-            await deleteDoc(doc(db, "tareas", id));
-        };
-
-        // --- DRAG & DROP ---
-        Sortable.create(document.getElementById('task-list'), {
-            handle: '.handle', animation: 150,
-            onEnd: async () => {
-                const items = document.querySelectorAll('.task-item');
-                const batch = writeBatch(db);
-                items.forEach((item, index) => {
-                    batch.update(doc(db, "tareas", item.dataset.id), { posicion: index });
-                });
-                await batch.commit();
-            }
-        });
-
         function render() {
             const list = document.getElementById('task-list');
             list.innerHTML = '';
-            tasks.forEach(task => {
+            tasks.forEach(t => {
                 const li = document.createElement('li');
-                li.className = `task-item ${task.done ? 'done' : ''}`;
-                li.dataset.id = task.id;
+                li.className = `task-item ${t.category} ${t.done ? 'done' : ''}`;
                 li.innerHTML = `
-                    <span class="handle">☰</span>
-                    <input type="checkbox" ${task.done ? 'checked' : ''} onclick="toggleTask('${task.id}', ${task.done})">
+                    <input type="checkbox" ${t.done ? 'checked' : ''} onclick="toggleTask('${t.id}', ${t.done})">
                     <div class="task-info">
-                        <div>${task.text}</div>
-                        <span class="task-user">${task.user} | ${task.freq}</span>
+                        <div>${t.text}</div>
+                        <div class="task-meta">${t.user}</div>
                     </div>
-                    <button class="delete-btn" onclick="deleteTask('${task.id}')">x</button>
+                    <button class="btn-action btn-edit" onclick="editTask('${t.id}', '${t.text}')">✏️</button>
+                    <button class="btn-action btn-del" onclick="deleteTask('${t.id}')">×</button>
                 `;
                 list.appendChild(li);
             });
             updateMascot();
         }
 
-        // --- LA MAGIA DEL MIAU AL APARECER (CORREGIDA) ---
         function updateMascot() {
             const total = tasks.length;
             const done = tasks.filter(t => t.done).length;
             const percent = total === 0 ? 0 : (done / total) * 100;
             const currentCatCount = Math.floor(percent / 16.6);
             
-            // Si el número de gatos aumentó, ¡MIAU!
             if (previousCatCount !== -1 && currentCatCount > previousCatCount) {
-                audioMiau.currentTime = 0;
-                audioMiau.play().catch(e => console.log("Interacción requerida"));
+                audioMiau.play();
+                showBubble();
             }
             previousCatCount = currentCatCount;
 
-            catNames.forEach((name, index) => {
-                const threshold = (index + 1) * 16.6;
-                const catImg = document.getElementById(`cat-${name}`);
-                if (percent >= threshold) {
-                    catImg.classList.remove('hidden');
-                } else {
-                    catImg.classList.add('hidden');
-                }
+            const catNames = ['Pelusa', 'Fonchi', 'Boti', 'Sammy', 'Michi', 'Alfi'];
+            catNames.forEach((n, i) => {
+                const img = document.getElementById(`cat-${n}`);
+                (percent >= (i + 1) * 16.6) ? img.classList.remove('hidden') : img.classList.add('hidden');
             });
-            
+
             document.getElementById('progress-fill').style.width = percent + "%";
             const status = document.getElementById('status-text');
             
-            if (total === 0) {
-                status.innerText = "¡Añade una tarea para reunir a la familia!";
-                previousCatCount = 0; // Reseteamos el contador para cuando reinicien el día
-            } else if (percent === 100) {
-                if (window.confetti) {
-                    confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-                }
+            if (percent === 100 && total > 0) {
+                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
                 status.innerText = "¡Familia completa! 🎉✨";
+                updateStreaks(true);
             } else {
-                status.innerText = `Michis reunidos: ${currentCatCount} / 6`;
+                status.innerText = total === 0 ? "¡Añade una tarea!" : `Michis reunidos: ${currentCatCount} / 6`;
             }
         }
+
+        function showBubble() {
+            const b = document.getElementById('speech-bubble');
+            b.innerText = phrases[Math.floor(Math.random() * phrases.length)];
+            b.style.opacity = 1;
+            setTimeout(() => b.style.opacity = 0, 3000);
+        }
+
+        Sortable.create(document.getElementById('task-list'), {
+            animation: 150, onEnd: async () => {
+                const items = document.querySelectorAll('.task-item');
+                const batch = writeBatch(db);
+                items.forEach((item, index) => {
+                    const t = tasks.find(x => x.text === item.querySelector('.task-info div').innerText);
+                    if(t) batch.update(doc(db, "tareas", t.id), { posicion: index });
+                });
+                await batch.commit();
+            }
+        });
     </script>
 </body>
 </html>
