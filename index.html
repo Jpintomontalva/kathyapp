@@ -189,7 +189,7 @@
                 category: document.getElementById('cat-select').value,
                 turno: document.getElementById('turno-select').value,
                 tipo: document.getElementById('tipo-select').value,
-                dia: currentDay, // Asignamos el día actual de la pestaña
+                dia: currentDay, 
                 done: false, 
                 posicion: tasks.length
             });
@@ -199,7 +199,7 @@
         window.toggleTask = async (id, status) => { await updateDoc(doc(db, "tareas", id), { done: !status }); };
         window.deleteTask = async (id) => { await deleteDoc(doc(db, "tareas", id)); };
 
-        // Patear para mañana (Opción 3)
+        // Patear para mañana
         window.moveTaskToNextDay = async (id) => {
             const nextDay = (currentDay + 1) % 7;
             await updateDoc(doc(db, "tareas", id), { dia: nextDay, done: false });
@@ -226,7 +226,6 @@
             const list = document.getElementById('task-list');
             list.innerHTML = '';
 
-            // Filtrar por Día y por Usuario (Focus)
             let filteredTasks = tasks.filter(t => (t.dia === currentDay || t.dia === undefined));
             if (focusUser !== 'Ambos') {
                 filteredTasks = filteredTasks.filter(t => t.user === focusUser || t.user === 'Ambos');
@@ -244,14 +243,27 @@
                 li.className = `task-item glass p-4 rounded-3xl flex items-center gap-3 border border-[var(--border)] shadow-sm ${t.category} ${t.done ? 'done' : ''}`;
                 li.dataset.id = t.id;
                 
+                // Construcción de Etiquetas Coloridas
+                const isAM = t.turno === 'AM';
+                const isFija = t.tipo === 'fija';
+
+                const badgeTurno = isAM 
+                    ? '<span class="px-2 py-0.5 rounded-md text-[9px] font-black bg-yellow-100 text-red-500 dark:bg-yellow-900/30 dark:text-yellow-400">☀️ AM</span>' 
+                    : '<span class="px-2 py-0.5 rounded-md text-[9px] font-black bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">🌙 PM</span>';
+                    
+                const badgeTipo = isFija
+                    ? '<span class="px-2 py-0.5 rounded-md text-[9px] font-black bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400">📌 Fija</span>'
+                    : '<span class="px-2 py-0.5 rounded-md text-[9px] font-black bg-orange-100 text-red-500 dark:bg-orange-900/30 dark:text-orange-400">⚡ Ocas</span>';
+
                 li.innerHTML = `
                     <span class="handle text-slate-300 text-xl">☰</span>
                     <input type="checkbox" ${t.done ? 'checked' : ''} onclick="toggleTask('${t.id}', ${t.done})" class="w-6 h-6 rounded-lg accent-indigo-500">
                     <div class="flex-1">
                         <div class="text-sm font-bold leading-tight">${t.text}</div>
-                        <div class="flex gap-2 mt-1">
-                            <span class="text-[9px] font-black uppercase text-slate-400">${t.user}</span>
-                            <span class="text-[9px] font-black px-1.5 bg-slate-100 dark:bg-slate-700 rounded">${t.turno}</span>
+                        <div class="flex gap-1.5 mt-1.5 items-center">
+                            <span class="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 mr-1">${t.user}</span>
+                            ${badgeTurno}
+                            ${badgeTipo}
                         </div>
                     </div>
                     <div class="flex gap-1">
