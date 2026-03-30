@@ -3,145 +3,126 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Nuestra App de Tareas</title>
+    <title>Universo J&K - Tareas</title>
     
     <link rel="icon" type="image/webp" href="icon.webp">
     <link rel="apple-touch-icon" href="icon.webp">
 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     
-    <style>
-        :root { 
-            --bg: #f0f2f5; --card: #ffffff; --primary: #6c5ce7; --accent: #00cec9; 
-            --text: #2d3436; --danger: #ff7675; --border: #ddd;
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Nunito', 'sans-serif'], title: ['Fredoka', 'sans-serif'] }
+                }
+            }
         }
-        /* Categorías Pasteles */
+    </script>
+
+    <style>
+        :root { --bg: #f0f2f5; --card: #ffffff; --text: #2d3436; --border: #ddd; --primary: #6c5ce7; }
+        .dark-mode { --bg: #1a1c23; --card: #242731; --text: #f5f6fa; --border: #3a3f50; }
+
+        body { background-color: var(--bg); color: var(--text); transition: all 0.3s; font-family: 'Nunito', sans-serif; }
+        
         .cat-urgente { border-left: 6px solid #fab1a0 !important; }
         .cat-salud { border-left: 6px solid #55efc4 !important; }
         .cat-casa { border-left: 6px solid #74b9ff !important; }
         .cat-general { border-left: 6px solid #dfe6e9 !important; }
 
-        body.dark-mode {
-            --bg: #2d3436; --card: #353b48; --text: #f5f6fa; --border: #718093;
-        }
-
-        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; transition: background 0.3s; }
-        
-        #mascot-container { text-align: center; margin-bottom: 20px; background: var(--card); padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 400px; position: relative; }
-        
-        #cat-house { position: relative; width: 100%; height: 200px; display: block; overflow: visible; margin-bottom: 15px; }
-
-        .cat-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; }
+        .day-tab.active { background: #6c5ce7; color: white; transform: scale(1.1); box-shadow: 0 4px 12px rgba(108, 92, 231, 0.4); }
         
         @keyframes breathe {
-            0% { transform: scale(1) translateY(0px); }
-            50% { transform: scale(1.01) translateY(-3px); }
-            100% { transform: scale(1) translateY(0px); }
+            0%, 100% { transform: scale(1) translateY(0px); }
+            50% { transform: scale(1.02) translateY(-4px); }
         }
         .cat-unit:not(.hidden) { animation: breathe 3.5s ease-in-out infinite; }
+
+        .task-item.done { opacity: 0.5; filter: grayscale(0.8); }
+        .handle { cursor: grab; user-select: none; }
         
-        #cat-Pelusa { animation-delay: 0s; }
-        #cat-Fonchi { animation-delay: 0.5s; }
-        #cat-Boti   { animation-delay: 1.2s; }
-        #cat-Sammy  { animation-delay: 0.8s; }
-        #cat-Michi  { animation-delay: 1.5s; }
-        #cat-Alfi   { animation-delay: 2.1s; }
+        #progress-bar { height: 10px; background: #dfe6e9; border-radius: 5px; overflow: hidden; }
+        .dark-mode #progress-bar { background: #3a3f50; }
 
-        #cat-fondo  { z-index: 0; }
-        #cat-Boti   { z-index: 1; }  #cat-Sammy  { z-index: 2; }  
-        #cat-Pelusa { z-index: 10; } #cat-Alfi   { z-index: 11; } 
-        #cat-Michi  { z-index: 12; } #cat-Fonchi { z-index: 13; } 
-
-        .hidden { opacity: 0; transform: scale(0.5); pointer-events: none; }
-
-        #speech-bubble {
-            position: absolute; top: 10px; right: 20px; background: white; color: #2d3436;
-            padding: 8px 12px; border-radius: 15px; font-size: 12px; font-weight: bold;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1); opacity: 0; transition: opacity 0.5s; z-index: 100;
-        }
-        #speech-bubble::after { content: ''; position: absolute; bottom: -8px; left: 20px; border-width: 8px 8px 0; border-style: solid; border-color: white transparent; }
-
-        #streak-container { position: absolute; top: 10px; left: 20px; display: flex; gap: 5px; z-index: 99; }
-        .cookie-icon { width: 25px; height: 25px; }
-
-        #progress-bar { width: 100%; height: 10px; background: #dfe6e9; border-radius: 5px; overflow: hidden; }
-        #progress-fill { height: 100%; width: 0%; background: var(--accent); transition: width 0.5s ease; }
-
-        .top-btns { display: flex; justify-content: flex-end; width: 100%; max-width: 400px; margin-bottom: 10px; }
-        .btn-mode { background: var(--card); border: 1px solid var(--border); border-radius: 50%; width: 40px; height: 40px; cursor: pointer; font-size: 20px; color: var(--text); }
-
-        .controls { display: flex; gap: 10px; width: 100%; max-width: 440px; margin-bottom: 15px; }
-        .btn-control { flex: 1; padding: 10px; border-radius: 8px; font-size: 11px; font-weight: bold; cursor: pointer; border: 1px solid rgba(0,0,0,0.1); }
-
-        .input-group { background: var(--card); padding: 15px; border-radius: 15px; width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
-        input, select, .add-btn { padding: 12px; border-radius: 8px; border: 1px solid var(--border); font-size: 14px; background: var(--card); color: var(--text); }
-        .add-btn { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; }
-
-        #task-list { width: 100%; max-width: 440px; list-style: none; padding: 0; }
-        .task-item { background: var(--card); margin-bottom: 10px; padding: 12px; border-radius: 12px; display: flex; align-items: center; gap: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .task-item.done { opacity: 0.5; text-decoration: line-through; }
-        
-        .handle { cursor: grab; color: #ccc; font-size: 20px; padding: 0 10px; user-select: none; }
-        
-        .task-info { flex-grow: 1; }
-        .task-meta { font-size: 10px; color: #636e72; margin-top: 4px; display: flex; gap: 5px; align-items: center; flex-wrap: wrap; }
-        .badge { padding: 2px 6px; border-radius: 4px; background: #eee; font-weight: bold; }
-        .badge-am { background: #ffeaa7; color: #d63031; }
-        .badge-pm { background: #74b9ff; color: #0984e3; }
-        .badge-ocasional { background: #fab1a0; color: #d63031; }
-        .badge-fija { background: #55efc4; color: #00b894; }
-
-        .btn-action { border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; color: white; font-size: 12px; }
-        .btn-edit { background: #fdcb6e; margin-right: 5px; }
-        .btn-del { background: var(--danger); }
+        .glass { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); }
+        .dark-mode .glass { background: rgba(36, 39, 49, 0.8); }
     </style>
 </head>
-<body>
+<body class="p-4 flex flex-col items-center">
 
-    <div class="top-btns">
-        <button class="btn-mode" onclick="toggleDarkMode()">🌙</button>
+    <div class="w-full max-w-md flex justify-between items-center mb-4">
+        <h1 class="font-title text-2xl font-bold text-indigo-500">Universo J&K</h1>
+        <button onclick="toggleDarkMode()" class="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-xl shadow-md">🌙</button>
     </div>
 
-    <div id="mascot-container">
-        <div id="streak-container"></div>
-        <div id="speech-bubble">¡Miau-nífico!</div>
+    <div class="w-full max-w-md flex justify-between mb-6 gap-1 bg-slate-200 dark:bg-slate-800 p-1.5 rounded-2xl shadow-inner">
+        <button onclick="changeDay(1)" id="day-1" class="day-tab flex-1 py-3 rounded-xl text-xs font-black transition-all">L</button>
+        <button onclick="changeDay(2)" id="day-2" class="day-tab flex-1 py-3 rounded-xl text-xs font-black transition-all">M</button>
+        <button onclick="changeDay(3)" id="day-3" class="day-tab flex-1 py-3 rounded-xl text-xs font-black transition-all">M</button>
+        <button onclick="changeDay(4)" id="day-4" class="day-tab flex-1 py-3 rounded-xl text-xs font-black transition-all">J</button>
+        <button onclick="changeDay(5)" id="day-5" class="day-tab flex-1 py-3 rounded-xl text-xs font-black transition-all">V</button>
+        <button onclick="changeDay(6)" id="day-6" class="day-tab flex-1 py-3 rounded-xl text-xs font-black transition-all bg-orange-100 dark:bg-orange-900/30 text-orange-500">S</button>
+        <button onclick="changeDay(0)" id="day-0" class="day-tab flex-1 py-3 rounded-xl text-xs font-black transition-all bg-orange-100 dark:bg-orange-900/30 text-orange-500">D</button>
+    </div>
+
+    <div id="mascot-container" class="w-full max-w-md bg-[var(--card)] p-5 rounded-[2.5rem] shadow-xl relative border border-[var(--border)] mb-6 transition-all">
+        <div id="streak-container" class="absolute top-4 left-6 flex gap-1"></div>
+        <div id="speech-bubble" class="absolute top-4 right-6 bg-white dark:bg-slate-700 text-[var(--text)] px-3 py-1.5 rounded-2xl text-[11px] font-black shadow-lg opacity-0 transition-opacity z-50 border border-slate-100 dark:border-slate-600">¡Miau!</div>
         
-        <div id="cat-house">
-            <img id="cat-fondo" src="fondo.webp" alt="Fondo" class="cat-img">
-            <img id="cat-Pelusa" src="Pelusa.webp" alt="Pelusa" class="cat-img cat-unit hidden">
-            <img id="cat-Fonchi" src="Fonchi.webp" alt="Fonchi" class="cat-img cat-unit hidden">
-            <img id="cat-Boti"   src="Boti.webp"   alt="Boti"   class="cat-img cat-unit hidden">
-            <img id="cat-Sammy"  src="Sammy.webp"  alt="Sammy"  class="cat-img cat-unit hidden">
-            <img id="cat-Michi"  src="Michi.webp"  alt="Michi"  class="cat-img cat-unit hidden">
-            <img id="cat-Alfi"   src="Alfi.webp"   alt="Alfi"   class="cat-img cat-unit hidden">
-        </div>
-        <p id="status-text">Cargando familia...</p>
-        <div id="progress-bar"><div id="progress-fill"></div></div>
-    </div>
-
-    <div class="controls">
-        <button class="btn-control" style="background:#a29bfe" onclick="resetDay()">🔄 REINICIAR DÍA</button>
-        <button class="btn-control" style="background:#fab1a0" onclick="resetAll()">🗑️ BORRAR TODO</button>
-    </div>
-
-    <div class="input-group">
-        <input type="text" id="task-input" placeholder="¿Qué haremos hoy?">
-        
-        <div style="display:flex; gap:5px;">
-            <select id="user-select" style="flex:1;"><option value="Jato">Jato</option><option value="Kathy">Kathy</option><option value="Ambos">Ambos</option></select>
-            <select id="cat-select" style="flex:1;"><option value="cat-general">General</option><option value="cat-urgente">Urgente</option><option value="cat-salud">Salud</option><option value="cat-casa">Casa</option></select>
+        <div id="cat-house" class="relative w-full h-40 mb-4">
+            <img src="fondo.webp" class="absolute inset-0 w-full h-full object-contain z-0">
+            <img id="cat-Pelusa" src="Pelusa.webp" class="cat-unit hidden absolute inset-0 w-full h-full object-contain z-10">
+            <img id="cat-Fonchi" src="Fonchi.webp" class="cat-unit hidden absolute inset-0 w-full h-full object-contain z-50">
+            <img id="cat-Boti"   src="Boti.webp"   class="cat-unit hidden absolute inset-0 w-full h-full object-contain z-20">
+            <img id="cat-Sammy"  src="Sammy.webp"  class="cat-unit hidden absolute inset-0 w-full h-full object-contain z-20">
+            <img id="cat-Michi"  src="Michi.webp"  class="cat-unit hidden absolute inset-0 w-full h-full object-contain z-40">
+            <img id="cat-Alfi"   src="Alfi.webp"   class="cat-unit hidden absolute inset-0 w-full h-full object-contain z-30">
         </div>
         
-        <div style="display:flex; gap:5px;">
-            <select id="turno-select" style="flex:1;"><option value="AM">☀️ Mañana (AM)</option><option value="PM">🌙 Tarde (PM)</option></select>
-            <select id="tipo-select" style="flex:1;"><option value="fija">📌 Fija</option><option value="ocasional">⚡ Ocasional</option></select>
+        <div class="px-2">
+            <p id="status-text" class="text-center font-title text-sm font-bold mb-2 text-slate-500 uppercase tracking-widest italic">Cargando...</p>
+            <div id="progress-bar"><div id="progress-fill" class="h-full bg-cyan-400 transition-all duration-700"></div></div>
         </div>
-
-        <button class="add-btn" id="add-btn">Añadir Tarea</button>
     </div>
 
-    <ul id="task-list"></ul>
+    <div class="w-full max-w-md flex justify-center gap-4 mb-4">
+        <button onclick="toggleUserFilter('Jato')" id="focus-Jato" class="w-12 h-12 rounded-2xl bg-indigo-100 dark:bg-indigo-900/30 text-indigo-500 font-black border-2 border-transparent transition-all">J</button>
+        <button onclick="toggleUserFilter('Ambos')" id="focus-Ambos" class="px-4 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-500 font-black border-2 border-transparent transition-all text-[10px] uppercase">Todos</button>
+        <button onclick="toggleUserFilter('Kathy')" id="focus-Kathy" class="w-12 h-12 rounded-2xl bg-pink-100 dark:bg-pink-900/30 text-pink-500 font-black border-2 border-transparent transition-all">K</button>
+    </div>
+
+    <div class="w-full max-w-md flex gap-2 mb-4">
+        <button onclick="resetDay()" class="flex-1 bg-indigo-500 text-white py-3 rounded-2xl font-black text-[10px] uppercase shadow-lg shadow-indigo-500/20 active:scale-95 transition">🔄 Reiniciar Día</button>
+        <button onclick="resetAll()" class="flex-1 bg-red-400 text-white py-3 rounded-2xl font-black text-[10px] uppercase shadow-lg shadow-red-500/20 active:scale-95 transition">🗑️ Borrar Todo</button>
+    </div>
+
+    <div class="w-full max-w-md bg-[var(--card)] p-4 rounded-3xl border border-[var(--border)] shadow-lg mb-6">
+        <input type="text" id="task-input" placeholder="¿Qué haremos este día?" class="w-full p-3 bg-slate-50 dark:bg-slate-800 rounded-xl mb-3 outline-none focus:ring-2 ring-indigo-400 text-sm">
+        <div class="grid grid-cols-2 gap-2 mb-3">
+            <select id="user-select" class="p-2 bg-slate-50 dark:bg-slate-800 rounded-lg text-xs font-bold outline-none border border-slate-200 dark:border-slate-700">
+                <option value="Jato">Jato</option><option value="Kathy">Kathy</option><option value="Ambos">Ambos</option>
+            </select>
+            <select id="cat-select" class="p-2 bg-slate-50 dark:bg-slate-800 rounded-lg text-xs font-bold outline-none border border-slate-200 dark:border-slate-700">
+                <option value="cat-general">General</option><option value="cat-urgente">Urgente</option><option value="cat-salud">Salud</option><option value="cat-casa">Casa</option>
+            </select>
+            <select id="turno-select" class="p-2 bg-slate-50 dark:bg-slate-800 rounded-lg text-xs font-bold outline-none border border-slate-200 dark:border-slate-700">
+                <option value="AM">☀️ Mañana</option><option value="PM">🌙 Tarde</option>
+            </select>
+            <select id="tipo-select" class="p-2 bg-slate-50 dark:bg-slate-800 rounded-lg text-xs font-bold outline-none border border-slate-200 dark:border-slate-700">
+                <option value="fija">📌 Fija</option><option value="ocasional">⚡ Ocasional</option>
+            </select>
+        </div>
+        <button id="add-btn" class="w-full bg-indigo-600 text-white py-3 rounded-2xl font-black text-sm uppercase shadow-xl hover:bg-indigo-500 transition active:scale-95">Añadir Tarea</button>
+    </div>
+
+    <ul id="task-list" class="w-full max-w-md space-y-3"></ul>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -163,9 +144,11 @@
         const statsDoc = doc(db, "stats", "global");
 
         let tasks = [];
+        let currentDay = new Date().getDay(); // 0-6 (Dom-Sab)
+        let focusUser = 'Ambos';
         let previousCatCount = -1;
         const audioMiau = new Audio('miau.mp3');
-        const phrases = ["¡Purr-fecto!", "¡Eres genial!", "¡Miau-nífico!", "¡Ronroneos!", "¡Casi listo!", "¡Equipazo!"];
+        const phrases = ["¡Purr-fecto!", "¡Increíble!", "¡Miau-nífico!", "¡Ronroneos!", "¡Vamooos!", "¡Equipazo!"];
 
         window.toggleDarkMode = () => {
             document.body.classList.toggle('dark-mode');
@@ -173,80 +156,67 @@
         };
         if(localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark-mode');
 
+        // --- MANEJO DE DÍAS ---
+        window.changeDay = (day) => {
+            currentDay = day;
+            document.querySelectorAll('.day-tab').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`day-${day}`).classList.add('active');
+            render();
+        };
+        changeDay(currentDay);
+
+        // --- FILTRO FOCUS ---
+        window.toggleUserFilter = (user) => {
+            focusUser = user;
+            document.querySelectorAll('[id^="focus-"]').forEach(btn => btn.classList.remove('border-indigo-500', 'border-pink-500', 'bg-white', 'dark:bg-slate-700'));
+            const activeBtn = document.getElementById(`focus-${user}`);
+            activeBtn.classList.add(user === 'Kathy' ? 'border-pink-500' : 'border-indigo-500', 'bg-white', 'dark:bg-slate-700');
+            render();
+        };
+        toggleUserFilter('Ambos');
+
         onSnapshot(query(tasksCol, orderBy("posicion")), (snap) => {
             tasks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
             render();
         });
 
-        async function updateStreaks(isFull) {
-            const snap = await getDoc(statsDoc);
-            let data = snap.exists() ? snap.data() : { streak: 0, lastDate: "" };
-            const today = new Date().toDateString();
-            if (isFull && data.lastDate !== today) {
-                data.streak++;
-                data.lastDate = today;
-                await setDoc(statsDoc, data);
-            }
-            renderCookies(data.streak);
-        }
-
-        function renderCookies(count) {
-            const container = document.getElementById('streak-container');
-            container.innerHTML = '';
-            for(let i=0; i<Math.min(count, 5); i++) {
-                container.innerHTML += `<img src="galleta.webp" class="cookie-icon">`;
-            }
-        }
-        updateStreaks(false);
-
         document.getElementById('add-btn').onclick = async () => {
             const input = document.getElementById('task-input');
             if (!input.value) return;
-            
-            // Agregamos turno y tipo a Firebase
             await addDoc(tasksCol, {
                 text: input.value, 
                 user: document.getElementById('user-select').value,
                 category: document.getElementById('cat-select').value,
                 turno: document.getElementById('turno-select').value,
                 tipo: document.getElementById('tipo-select').value,
+                dia: currentDay, // Asignamos el día actual de la pestaña
                 done: false, 
                 posicion: tasks.length
             });
             input.value = '';
         };
 
-        window.toggleTask = async (id, status) => { 
-            await updateDoc(doc(db, "tareas", id), { done: !status }); 
-        };
-        
-        window.editTask = async (id, oldText) => {
-            const newText = prompt("Editar tarea:", oldText);
-            if (newText) await updateDoc(doc(db, "tareas", id), { text: newText });
-        };
-
+        window.toggleTask = async (id, status) => { await updateDoc(doc(db, "tareas", id), { done: !status }); };
         window.deleteTask = async (id) => { await deleteDoc(doc(db, "tareas", id)); };
 
+        // Patear para mañana (Opción 3)
+        window.moveTaskToNextDay = async (id) => {
+            const nextDay = (currentDay + 1) % 7;
+            await updateDoc(doc(db, "tareas", id), { dia: nextDay, done: false });
+        };
+
         window.resetDay = async () => {
-            if (!confirm("¿Reiniciar día? (Las tareas 'Ocasionales' terminadas se borrarán y las 'Fijas' volverán a pendiente)")) return;
-            
+            if (!confirm("¿Limpiar tareas ocasionales de hoy y resetear fijas?")) return;
             const batch = writeBatch(db);
-            tasks.forEach(t => {
-                const tipoReal = t.tipo || 'fija'; // Blindaje por si hay tareas viejas
-                
-                if (tipoReal === 'ocasional' && t.done) {
-                    // Borra las ocasionales si ya se completaron
-                    batch.delete(doc(db, "tareas", t.id));
-                } else {
-                    // Solo desmarca (las fijas o las ocasionales no terminadas)
-                    batch.update(doc(db, "tareas", t.id), { done: false });
-                }
+            tasks.filter(t => t.dia === currentDay).forEach(t => {
+                if (t.tipo === 'ocasional' && t.done) batch.delete(doc(db, "tareas", t.id));
+                else batch.update(doc(db, "tareas", t.id), { done: false });
             });
             await batch.commit();
         };
 
         window.resetAll = async () => {
-            if (!confirm("⚠️ BORRAR TODO?")) return;
+            if (!confirm("⚠️ ¿BORRAR ABSOLUTAMENTE TODO?")) return;
             const batch = writeBatch(db);
             tasks.forEach(t => batch.delete(doc(db, "tareas", t.id)));
             await batch.commit();
@@ -256,79 +226,60 @@
             const list = document.getElementById('task-list');
             list.innerHTML = '';
 
-            // --- LÓGICA DE ORDENAMIENTO (Ahora incluye AM/PM) ---
-            const sortedTasks = [...tasks].sort((a, b) => {
-                // 1. Pendientes arriba, Terminadas abajo
+            // Filtrar por Día y por Usuario (Focus)
+            let filteredTasks = tasks.filter(t => (t.dia === currentDay || t.dia === undefined));
+            if (focusUser !== 'Ambos') {
+                filteredTasks = filteredTasks.filter(t => t.user === focusUser || t.user === 'Ambos');
+            }
+
+            const sorted = filteredTasks.sort((a, b) => {
                 if (a.done !== b.done) return a.done ? 1 : -1;
-                
-                // 2. Orden AM y PM (AM va primero que PM)
-                const turnoA = a.turno || 'AM'; // Por defecto AM si no existe
-                const turnoB = b.turno || 'AM';
-                if (turnoA !== turnoB) return turnoA === 'AM' ? -1 : 1;
-                
-                // 3. Mantener el orden de drag and drop
+                const turnos = { 'AM': 0, 'PM': 1 };
+                if (a.turno !== b.turno) return turnos[a.turno] - turnos[b.turno];
                 return a.posicion - b.posicion;
             });
 
-            sortedTasks.forEach(t => {
+            sorted.forEach(t => {
                 const li = document.createElement('li');
-                li.className = `task-item ${t.category} ${t.done ? 'done' : ''}`;
-                li.dataset.id = t.id; 
+                li.className = `task-item glass p-4 rounded-3xl flex items-center gap-3 border border-[var(--border)] shadow-sm ${t.category} ${t.done ? 'done' : ''}`;
+                li.dataset.id = t.id;
                 
-                const turnoStr = t.turno || 'AM';
-                const tipoStr = t.tipo || 'fija';
-                
-                // Etiquetas visuales (Badges)
-                const badgeTurno = turnoStr === 'AM' ? '<span class="badge badge-am">☀️ AM</span>' : '<span class="badge badge-pm">🌙 PM</span>';
-                const badgeTipo = tipoStr === 'fija' ? '<span class="badge badge-fija">📌 Fija</span>' : '<span class="badge badge-ocasional">⚡ Ocas</span>';
-
                 li.innerHTML = `
-                    <span class="handle">☰</span>
-                    <input type="checkbox" ${t.done ? 'checked' : ''} onclick="toggleTask('${t.id}', ${t.done})">
-                    <div class="task-info">
-                        <div>${t.text}</div>
-                        <div class="task-meta">
-                            <strong>${t.user}</strong> ${badgeTurno} ${badgeTipo}
+                    <span class="handle text-slate-300 text-xl">☰</span>
+                    <input type="checkbox" ${t.done ? 'checked' : ''} onclick="toggleTask('${t.id}', ${t.done})" class="w-6 h-6 rounded-lg accent-indigo-500">
+                    <div class="flex-1">
+                        <div class="text-sm font-bold leading-tight">${t.text}</div>
+                        <div class="flex gap-2 mt-1">
+                            <span class="text-[9px] font-black uppercase text-slate-400">${t.user}</span>
+                            <span class="text-[9px] font-black px-1.5 bg-slate-100 dark:bg-slate-700 rounded">${t.turno}</span>
                         </div>
                     </div>
-                    <button class="btn-action btn-edit" onclick="editTask('${t.id}', '${t.text}')">✏️</button>
-                    <button class="btn-action btn-del" onclick="deleteTask('${t.id}')">×</button>
+                    <div class="flex gap-1">
+                        <button onclick="moveTaskToNextDay('${t.id}')" class="p-2 bg-orange-100 dark:bg-orange-900/30 text-orange-500 rounded-xl text-xs" title="Pasar a mañana">🚚</button>
+                        <button onclick="deleteTask('${t.id}')" class="p-2 bg-red-100 dark:bg-red-900/30 text-red-500 rounded-xl text-xs">×</button>
+                    </div>
                 `;
                 list.appendChild(li);
             });
-            updateMascot();
+            updateMascot(filteredTasks);
         }
 
-        function updateMascot() {
-            const total = tasks.length;
-            const done = tasks.filter(t => t.done).length;
+        function updateMascot(dayTasks) {
+            const total = dayTasks.length;
+            const done = dayTasks.filter(t => t.done).length;
             const percent = total === 0 ? 0 : (done / total) * 100;
             const currentCatCount = Math.floor(percent / 16.6);
             
-            if (previousCatCount !== -1 && currentCatCount > previousCatCount) {
-                audioMiau.play();
-                showBubble();
-            }
+            if (previousCatCount !== -1 && currentCatCount > previousCatCount) { audioMiau.play(); showBubble(); }
             previousCatCount = currentCatCount;
 
-            const catNames = ['Pelusa', 'Fonchi', 'Boti', 'Sammy', 'Michi', 'Alfi'];
-            catNames.forEach((n, i) => {
+            ['Pelusa', 'Fonchi', 'Boti', 'Sammy', 'Michi', 'Alfi'].forEach((n, i) => {
                 const img = document.getElementById(`cat-${n}`);
                 (percent >= (i + 1) * 16.6) ? img.classList.remove('hidden') : img.classList.add('hidden');
             });
 
             document.getElementById('progress-fill').style.width = percent + "%";
-            const status = document.getElementById('status-text');
-            
-            if (total === 0) {
-                status.innerText = "¡Añade una tarea!";
-            } else if (percent === 100) {
-                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-                status.innerText = `¡Familia completa! 🎉 (${done}/${total})`;
-                updateStreaks(true);
-            } else {
-                status.innerText = `Michis: ${currentCatCount}/6 | Tareas: ${done}/${total}`;
-            }
+            document.getElementById('status-text').innerText = percent === 100 ? "¡Día Completo! 🎉" : `Michis: ${currentCatCount}/6 • ${done}/${total}`;
         }
 
         function showBubble() {
@@ -339,14 +290,11 @@
         }
 
         Sortable.create(document.getElementById('task-list'), {
-            handle: '.handle', 
-            animation: 150,
+            handle: '.handle', animation: 200,
             onEnd: async () => {
-                const items = document.querySelectorAll('.task-item');
                 const batch = writeBatch(db);
-                items.forEach((item, index) => {
-                    const taskId = item.dataset.id;
-                    batch.update(doc(db, "tareas", taskId), { posicion: index });
+                document.querySelectorAll('.task-item').forEach((el, i) => {
+                    batch.update(doc(db, "tareas", el.dataset.id), { posicion: i });
                 });
                 await batch.commit();
             }
