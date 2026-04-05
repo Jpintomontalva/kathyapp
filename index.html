@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Universo J&K - Tareas</title>
+    <title>Universo J&K - Agenda PRO</title>
     
     <link rel="icon" type="image/webp" href="icon.webp">
     <link rel="apple-touch-icon" href="icon.webp">
@@ -38,6 +38,8 @@
         .cat-general { border-left: 6px solid #dfe6e9 !important; }
 
         .day-tab.active { background: #6c5ce7; color: white; transform: scale(1.1); box-shadow: 0 4px 12px rgba(108, 92, 231, 0.4); }
+        .day-tab.today { box-shadow: 0 0 0 2px #6c5ce7, 0 0 0 4px var(--bg); }
+        .dark-mode .day-tab.today { box-shadow: 0 0 0 2px #a29bfe, 0 0 0 4px var(--bg); }
         
         @keyframes breathe {
             0%, 100% { transform: scale(1) translateY(0px); }
@@ -45,7 +47,7 @@
         }
         .cat-unit:not(.hidden) { animation: breathe 3.5s ease-in-out infinite; }
 
-        .task-item.done { opacity: 0.5; filter: grayscale(0.8); }
+        .task-item.done, .compra-item.done { opacity: 0.5; filter: grayscale(0.8); }
         .handle { cursor: grab; user-select: none; }
         
         #progress-bar { height: 10px; background: #dfe6e9; border-radius: 5px; overflow: hidden; }
@@ -53,80 +55,123 @@
 
         .glass { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); }
         .dark-mode .glass { background: rgba(36, 39, 49, 0.8); }
+
+        /* Nav inferior */
+        .nav-btn { color: #a4b0be; transition: all 0.2s; }
+        .nav-btn.active { color: #6c5ce7; transform: translateY(-2px); }
+        .dark-mode .nav-btn.active { color: #a29bfe; }
     </style>
 </head>
-<body class="p-4 flex flex-col items-center">
+<body class="p-4 flex flex-col items-center pb-24">
 
     <div class="w-full max-w-md flex justify-between items-center mb-4">
-        <h1 class="font-title text-2xl font-bold text-indigo-500">Universo J&K</h1>
-        <button onclick="toggleDarkMode()" class="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-xl shadow-md">🌙</button>
+        <h1 class="font-title text-2xl font-bold text-indigo-500 tracking-wide">Universo J&K</h1>
+        <button onclick="toggleDarkMode()" class="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-xl shadow-md transition-transform active:scale-95">🌙</button>
     </div>
 
-    <div class="w-full max-w-md flex justify-between mb-6 gap-1 bg-slate-200 dark:bg-slate-800 p-1.5 rounded-2xl shadow-inner">
-        <button onclick="changeDay(1)" id="day-1" class="day-tab flex-1 py-3 rounded-xl text-xs font-black transition-all">L</button>
-        <button onclick="changeDay(2)" id="day-2" class="day-tab flex-1 py-3 rounded-xl text-xs font-black transition-all">M</button>
-        <button onclick="changeDay(3)" id="day-3" class="day-tab flex-1 py-3 rounded-xl text-xs font-black transition-all">M</button>
-        <button onclick="changeDay(4)" id="day-4" class="day-tab flex-1 py-3 rounded-xl text-xs font-black transition-all">J</button>
-        <button onclick="changeDay(5)" id="day-5" class="day-tab flex-1 py-3 rounded-xl text-xs font-black transition-all">V</button>
-        <button onclick="changeDay(6)" id="day-6" class="day-tab flex-1 py-3 rounded-xl text-xs font-black transition-all bg-orange-100 dark:bg-orange-900/30 text-orange-500">S</button>
-        <button onclick="changeDay(0)" id="day-0" class="day-tab flex-1 py-3 rounded-xl text-xs font-black transition-all bg-orange-100 dark:bg-orange-900/30 text-orange-500">D</button>
-    </div>
-
-    <div id="mascot-container" class="w-full max-w-md bg-[var(--card)] p-5 rounded-[2.5rem] shadow-xl relative border border-[var(--border)] mb-6 transition-all">
-        <div id="streak-container" class="absolute top-4 left-6 flex gap-1"></div>
-        <div id="speech-bubble" class="absolute top-4 right-6 bg-white dark:bg-slate-700 text-[var(--text)] px-3 py-1.5 rounded-2xl text-[11px] font-black shadow-lg opacity-0 transition-opacity z-50 border border-slate-100 dark:border-slate-600">¡Miau!</div>
+    <div id="view-agenda" class="w-full max-w-md w-full transition-opacity duration-300">
         
-        <div id="cat-house" class="relative w-full h-40 mb-4">
-            <img src="fondo.webp" class="absolute inset-0 w-full h-full object-contain z-0">
-            <img id="cat-Pelusa" src="Pelusa.webp" class="cat-unit hidden absolute inset-0 w-full h-full object-contain z-10">
-            <img id="cat-Fonchi" src="Fonchi.webp" class="cat-unit hidden absolute inset-0 w-full h-full object-contain z-50">
-            <img id="cat-Boti"   src="Boti.webp"   class="cat-unit hidden absolute inset-0 w-full h-full object-contain z-20">
-            <img id="cat-Sammy"  src="Sammy.webp"  class="cat-unit hidden absolute inset-0 w-full h-full object-contain z-20">
-            <img id="cat-Michi"  src="Michi.webp"  class="cat-unit hidden absolute inset-0 w-full h-full object-contain z-40">
-            <img id="cat-Alfi"   src="Alfi.webp"   class="cat-unit hidden absolute inset-0 w-full h-full object-contain z-30">
+        <div class="flex justify-between mb-6 gap-1 bg-slate-200 dark:bg-slate-800 p-1.5 rounded-2xl shadow-inner relative">
+            <button onclick="changeDay(1)" id="day-1" class="day-tab flex-1 py-3 rounded-xl text-xs font-black transition-all">L</button>
+            <button onclick="changeDay(2)" id="day-2" class="day-tab flex-1 py-3 rounded-xl text-xs font-black transition-all">M</button>
+            <button onclick="changeDay(3)" id="day-3" class="day-tab flex-1 py-3 rounded-xl text-xs font-black transition-all">M</button>
+            <button onclick="changeDay(4)" id="day-4" class="day-tab flex-1 py-3 rounded-xl text-xs font-black transition-all">J</button>
+            <button onclick="changeDay(5)" id="day-5" class="day-tab flex-1 py-3 rounded-xl text-xs font-black transition-all">V</button>
+            <button onclick="changeDay(6)" id="day-6" class="day-tab flex-1 py-3 rounded-xl text-xs font-black transition-all bg-orange-100 dark:bg-orange-900/30 text-orange-500">S</button>
+            <button onclick="changeDay(0)" id="day-0" class="day-tab flex-1 py-3 rounded-xl text-xs font-black transition-all bg-orange-100 dark:bg-orange-900/30 text-orange-500">D</button>
         </div>
+
+        <div id="mascot-container" class="bg-[var(--card)] p-5 rounded-[2.5rem] shadow-xl relative border border-[var(--border)] mb-6 transition-all">
+            <div id="streak-container" class="absolute top-4 left-6 flex gap-1"></div>
+            <div id="speech-bubble" class="absolute top-4 right-6 bg-white dark:bg-slate-700 text-[var(--text)] px-3 py-1.5 rounded-2xl text-[11px] font-black shadow-lg opacity-0 transition-opacity z-50 border border-slate-100 dark:border-slate-600">¡Miau!</div>
+            
+            <div id="cat-house" class="relative w-full h-40 mb-4">
+                <img src="fondo.webp" class="absolute inset-0 w-full h-full object-contain z-0">
+                <img id="cat-Pelusa" src="Pelusa.webp" class="cat-unit hidden absolute inset-0 w-full h-full object-contain z-10">
+                <img id="cat-Fonchi" src="Fonchi.webp" class="cat-unit hidden absolute inset-0 w-full h-full object-contain z-50">
+                <img id="cat-Boti"   src="Boti.webp"   class="cat-unit hidden absolute inset-0 w-full h-full object-contain z-20">
+                <img id="cat-Sammy"  src="Sammy.webp"  class="cat-unit hidden absolute inset-0 w-full h-full object-contain z-20">
+                <img id="cat-Michi"  src="Michi.webp"  class="cat-unit hidden absolute inset-0 w-full h-full object-contain z-40">
+                <img id="cat-Alfi"   src="Alfi.webp"   class="cat-unit hidden absolute inset-0 w-full h-full object-contain z-30">
+            </div>
+            
+            <div class="px-2">
+                <p id="status-text" class="text-center font-title text-sm font-bold mb-2 text-slate-500 uppercase tracking-widest italic">Cargando...</p>
+                <div id="progress-bar"><div id="progress-fill" class="h-full bg-cyan-400 transition-all duration-700"></div></div>
+            </div>
+        </div>
+
+        <div class="flex justify-between items-center mb-4 gap-2">
+            <div class="flex gap-2">
+                <button onclick="toggleUserFilter('Jato')" id="focus-Jato" class="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 text-indigo-500 font-black border-2 border-transparent transition-all">J</button>
+                <button onclick="toggleUserFilter('Ambos')" id="focus-Ambos" class="px-3 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 font-black border-2 border-transparent transition-all text-[10px] uppercase">Todos</button>
+                <button onclick="toggleUserFilter('Kathy')" id="focus-Kathy" class="w-10 h-10 rounded-xl bg-pink-100 dark:bg-pink-900/30 text-pink-500 font-black border-2 border-transparent transition-all">K</button>
+            </div>
+            <button onclick="resetDay()" class="bg-indigo-500 text-white px-4 h-10 rounded-xl font-black text-[10px] uppercase shadow-lg shadow-indigo-500/20 active:scale-95 transition">🔄 Reset Día</button>
+        </div>
+
+        <div class="bg-[var(--card)] p-4 rounded-3xl border border-[var(--border)] shadow-lg mb-6">
+            <input type="text" id="task-input" placeholder="¿Qué haremos este día?" class="w-full p-3 bg-slate-50 dark:bg-slate-800 rounded-xl mb-3 outline-none focus:ring-2 ring-indigo-400 text-sm">
+            <div class="grid grid-cols-2 gap-2 mb-3">
+                <select id="user-select" class="p-2 bg-slate-50 dark:bg-slate-800 rounded-lg text-xs font-bold outline-none border border-slate-200 dark:border-slate-700">
+                    <option value="Jato">Jato</option><option value="Kathy">Kathy</option><option value="Ambos">Ambos</option>
+                </select>
+                <select id="cat-select" class="p-2 bg-slate-50 dark:bg-slate-800 rounded-lg text-xs font-bold outline-none border border-slate-200 dark:border-slate-700">
+                    <option value="cat-general">General</option><option value="cat-urgente">Urgente</option><option value="cat-salud">Salud</option><option value="cat-casa">Casa</option>
+                </select>
+                <select id="turno-select" class="p-2 bg-slate-50 dark:bg-slate-800 rounded-lg text-xs font-bold outline-none border border-slate-200 dark:border-slate-700">
+                    <option value="AM">☀️ Mañana</option><option value="PM">🌙 Tarde</option>
+                </select>
+                <select id="tipo-select" class="p-2 bg-slate-50 dark:bg-slate-800 rounded-lg text-xs font-bold outline-none border border-slate-200 dark:border-slate-700">
+                    <option value="fija">📌 Fija</option><option value="ocasional">⚡ Ocasional</option>
+                </select>
+            </div>
+            <button id="add-btn" class="w-full bg-indigo-600 text-white py-3 rounded-xl font-black text-sm uppercase shadow-xl hover:bg-indigo-500 transition active:scale-95">Añadir Tarea</button>
+        </div>
+
+        <ul id="task-list" class="space-y-3 mb-6"></ul>
+    </div>
+
+    <div id="view-compras" class="w-full max-w-md hidden transition-opacity duration-300">
         
-        <div class="px-2">
-            <p id="status-text" class="text-center font-title text-sm font-bold mb-2 text-slate-500 uppercase tracking-widest italic">Cargando...</p>
-            <div id="progress-bar"><div id="progress-fill" class="h-full bg-cyan-400 transition-all duration-700"></div></div>
+        <div class="bg-indigo-50 dark:bg-indigo-900/20 p-5 rounded-[2rem] border border-indigo-100 dark:border-indigo-800 mb-6 flex items-center gap-4">
+            <div class="text-4xl">🛒</div>
+            <div>
+                <h2 class="font-title font-bold text-lg text-indigo-600 dark:text-indigo-400">Lista de Deseos & Compras</h2>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Anota lo que necesitamos a futuro.</p>
+            </div>
         </div>
-    </div>
 
-    <div class="w-full max-w-md flex justify-center gap-4 mb-4">
-        <button onclick="toggleUserFilter('Jato')" id="focus-Jato" class="w-12 h-12 rounded-2xl bg-indigo-100 dark:bg-indigo-900/30 text-indigo-500 font-black border-2 border-transparent transition-all">J</button>
-        <button onclick="toggleUserFilter('Ambos')" id="focus-Ambos" class="px-4 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-500 font-black border-2 border-transparent transition-all text-[10px] uppercase">Todos</button>
-        <button onclick="toggleUserFilter('Kathy')" id="focus-Kathy" class="w-12 h-12 rounded-2xl bg-pink-100 dark:bg-pink-900/30 text-pink-500 font-black border-2 border-transparent transition-all">K</button>
-    </div>
-
-    <div class="w-full max-w-md flex gap-2 mb-4">
-        <button onclick="resetDay()" class="flex-1 bg-indigo-500 text-white py-3 rounded-2xl font-black text-[10px] uppercase shadow-lg shadow-indigo-500/20 active:scale-95 transition">🔄 Reiniciar Día</button>
-        <button onclick="resetAll()" class="flex-1 bg-red-400 text-white py-3 rounded-2xl font-black text-[10px] uppercase shadow-lg shadow-red-500/20 active:scale-95 transition">🗑️ Borrar Todo</button>
-    </div>
-
-    <div class="w-full max-w-md bg-[var(--card)] p-4 rounded-3xl border border-[var(--border)] shadow-lg mb-6">
-        <input type="text" id="task-input" placeholder="¿Qué haremos este día?" class="w-full p-3 bg-slate-50 dark:bg-slate-800 rounded-xl mb-3 outline-none focus:ring-2 ring-indigo-400 text-sm">
-        <div class="grid grid-cols-2 gap-2 mb-3">
-            <select id="user-select" class="p-2 bg-slate-50 dark:bg-slate-800 rounded-lg text-xs font-bold outline-none border border-slate-200 dark:border-slate-700">
-                <option value="Jato">Jato</option><option value="Kathy">Kathy</option><option value="Ambos">Ambos</option>
-            </select>
-            <select id="cat-select" class="p-2 bg-slate-50 dark:bg-slate-800 rounded-lg text-xs font-bold outline-none border border-slate-200 dark:border-slate-700">
-                <option value="cat-general">General</option><option value="cat-urgente">Urgente</option><option value="cat-salud">Salud</option><option value="cat-casa">Casa</option>
-            </select>
-            <select id="turno-select" class="p-2 bg-slate-50 dark:bg-slate-800 rounded-lg text-xs font-bold outline-none border border-slate-200 dark:border-slate-700">
-                <option value="AM">☀️ Mañana</option><option value="PM">🌙 Tarde</option>
-            </select>
-            <select id="tipo-select" class="p-2 bg-slate-50 dark:bg-slate-800 rounded-lg text-xs font-bold outline-none border border-slate-200 dark:border-slate-700">
-                <option value="fija">📌 Fija</option><option value="ocasional">⚡ Ocasional</option>
-            </select>
+        <div class="bg-[var(--card)] p-4 rounded-3xl border border-[var(--border)] shadow-lg mb-6">
+            <input type="text" id="compra-input" placeholder="Ej: Nueva silla ergonómica" class="w-full p-3 bg-slate-50 dark:bg-slate-800 rounded-xl mb-3 outline-none focus:ring-2 ring-pink-400 text-sm">
+            <div class="grid grid-cols-2 gap-2 mb-3">
+                <select id="compra-user" class="p-2 bg-slate-50 dark:bg-slate-800 rounded-lg text-xs font-bold outline-none border border-slate-200 dark:border-slate-700">
+                    <option value="Casa">🏡 Para la Casa</option><option value="Jato">👤 Para Jato</option><option value="Kathy">👤 Para Kathy</option>
+                </select>
+                <select id="compra-urgencia" class="p-2 bg-slate-50 dark:bg-slate-800 rounded-lg text-xs font-bold outline-none border border-slate-200 dark:border-slate-700">
+                    <option value="Deseo">✨ Deseo</option><option value="Necesidad">⚠️ Necesidad</option>
+                </select>
+            </div>
+            <button id="add-compra-btn" class="w-full bg-pink-500 text-white py-3 rounded-xl font-black text-sm uppercase shadow-xl hover:bg-pink-400 transition active:scale-95">Añadir a la lista</button>
         </div>
-        <button id="add-btn" class="w-full bg-indigo-600 text-white py-3 rounded-2xl font-black text-sm uppercase shadow-xl hover:bg-indigo-500 transition active:scale-95">Añadir Tarea</button>
+
+        <ul id="compras-list" class="space-y-3"></ul>
     </div>
 
-    <ul id="task-list" class="w-full max-w-md space-y-3"></ul>
+    <div class="fixed bottom-0 w-full max-w-md bg-[var(--card)] border-t border-[var(--border)] px-6 py-3 flex justify-around items-center z-50 rounded-t-3xl shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
+        <button onclick="switchView('agenda')" id="nav-agenda" class="nav-btn active flex flex-col items-center gap-1 w-20">
+            <span class="text-2xl">📅</span>
+            <span class="text-[10px] font-bold uppercase tracking-wider">Agenda</span>
+        </button>
+        <button onclick="switchView('compras')" id="nav-compras" class="nav-btn flex flex-col items-center gap-1 w-20">
+            <span class="text-2xl">🛍️</span>
+            <span class="text-[10px] font-bold uppercase tracking-wider">Compras</span>
+        </button>
+    </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, addDoc, updateDoc, doc, deleteDoc, query, orderBy, writeBatch, getDoc, setDoc } 
+        import { getFirestore, collection, onSnapshot, addDoc, updateDoc, doc, deleteDoc, query, orderBy, writeBatch } 
         from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -140,46 +185,72 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        
+        // Colecciones
         const tasksCol = collection(db, "tareas");
-        const statsDoc = doc(db, "stats", "global");
+        const comprasCol = collection(db, "compras");
 
         let tasks = [];
-        let currentDay = new Date().getDay(); // 0-6 (Dom-Sab)
+        let compras = [];
+        let currentDay = new Date().getDay(); // Día seleccionado en la UI
+        const realToday = new Date().getDay(); // Día real del mundo
         let focusUser = 'Ambos';
         let previousCatCount = -1;
         const audioMiau = new Audio('miau.mp3');
         const phrases = ["¡Purr-fecto!", "¡Increíble!", "¡Miau-nífico!", "¡Ronroneos!", "¡Vamooos!", "¡Equipazo!"];
 
+        // --- MODO OSCURO ---
         window.toggleDarkMode = () => {
             document.body.classList.toggle('dark-mode');
             localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
         };
         if(localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark-mode');
 
+        // --- SISTEMA DE VISTAS (NAV) ---
+        window.switchView = (view) => {
+            document.getElementById('view-agenda').classList.toggle('hidden', view !== 'agenda');
+            document.getElementById('view-compras').classList.toggle('hidden', view !== 'compras');
+            
+            document.getElementById('nav-agenda').classList.toggle('active', view === 'agenda');
+            document.getElementById('nav-compras').classList.toggle('active', view === 'compras');
+        };
+
         // --- MANEJO DE DÍAS ---
         window.changeDay = (day) => {
             currentDay = day;
-            document.querySelectorAll('.day-tab').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.day-tab').forEach(btn => {
+                btn.classList.remove('active');
+            });
             document.getElementById(`day-${day}`).classList.add('active');
-            render();
+            renderTasks();
         };
-        changeDay(currentDay);
 
-        // --- FILTRO FOCUS ---
+        // Marcar el día real de forma permanente en el UI
+        document.getElementById(`day-${realToday}`).classList.add('today');
+        changeDay(realToday); // Iniciar en el día actual
+
+        // --- FILTRO FOCUS AGENDA ---
         window.toggleUserFilter = (user) => {
             focusUser = user;
             document.querySelectorAll('[id^="focus-"]').forEach(btn => btn.classList.remove('border-indigo-500', 'border-pink-500', 'bg-white', 'dark:bg-slate-700'));
             const activeBtn = document.getElementById(`focus-${user}`);
             activeBtn.classList.add(user === 'Kathy' ? 'border-pink-500' : 'border-indigo-500', 'bg-white', 'dark:bg-slate-700');
-            render();
+            renderTasks();
         };
         toggleUserFilter('Ambos');
 
+        // --- LISTENERS FIREBASE ---
         onSnapshot(query(tasksCol, orderBy("posicion")), (snap) => {
             tasks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-            render();
+            renderTasks();
         });
 
+        onSnapshot(query(comprasCol, orderBy("timestamp")), (snap) => {
+            compras = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            renderCompras();
+        });
+
+        // --- AÑADIR TAREA ---
         document.getElementById('add-btn').onclick = async () => {
             const input = document.getElementById('task-input');
             if (!input.value) return;
@@ -189,40 +260,55 @@
                 category: document.getElementById('cat-select').value,
                 turno: document.getElementById('turno-select').value,
                 tipo: document.getElementById('tipo-select').value,
-                dia: currentDay, 
+                dia: currentDay, // Se asigna al día que estás viendo
                 done: false, 
                 posicion: tasks.length
             });
             input.value = '';
         };
 
+        // --- AÑADIR COMPRA ---
+        document.getElementById('add-compra-btn').onclick = async () => {
+            const input = document.getElementById('compra-input');
+            if (!input.value) return;
+            await addDoc(comprasCol, {
+                text: input.value,
+                destino: document.getElementById('compra-user').value,
+                urgencia: document.getElementById('compra-urgencia').value,
+                done: false,
+                timestamp: Date.now()
+            });
+            input.value = '';
+        };
+
+        // --- ACCIONES TAREAS ---
         window.toggleTask = async (id, status) => { await updateDoc(doc(db, "tareas", id), { done: !status }); };
         window.deleteTask = async (id) => { await deleteDoc(doc(db, "tareas", id)); };
-
-        // Patear para mañana
         window.moveTaskToNextDay = async (id) => {
             const nextDay = (currentDay + 1) % 7;
             await updateDoc(doc(db, "tareas", id), { dia: nextDay, done: false });
         };
 
+        // --- ACCIONES COMPRAS ---
+        window.toggleCompra = async (id, status) => { await updateDoc(doc(db, "compras", id), { done: !status }); };
+        window.deleteCompra = async (id) => { await deleteDoc(doc(db, "compras", id)); };
+
+        // --- RESET LÓGICA MEJORADA ---
         window.resetDay = async () => {
-            if (!confirm("¿Limpiar tareas ocasionales de hoy y resetear fijas?")) return;
+            if (!confirm(`¿Limpiar tareas del día seleccionado? Las ocasionales se borrarán y las fijas se reiniciarán.`)) return;
             const batch = writeBatch(db);
             tasks.filter(t => t.dia === currentDay).forEach(t => {
-                if (t.tipo === 'ocasional' && t.done) batch.delete(doc(db, "tareas", t.id));
-                else batch.update(doc(db, "tareas", t.id), { done: false });
+                if (t.tipo === 'ocasional') {
+                    batch.delete(doc(db, "tareas", t.id)); // Ocasionales SIEMPRE se borran
+                } else {
+                    batch.update(doc(db, "tareas", t.id), { done: false }); // Fijas SIEMPRE se desmarcan
+                }
             });
             await batch.commit();
         };
 
-        window.resetAll = async () => {
-            if (!confirm("⚠️ ¿BORRAR ABSOLUTAMENTE TODO?")) return;
-            const batch = writeBatch(db);
-            tasks.forEach(t => batch.delete(doc(db, "tareas", t.id)));
-            await batch.commit();
-        };
-
-        function render() {
+        // --- RENDER AGENDA ---
+        function renderTasks() {
             const list = document.getElementById('task-list');
             list.innerHTML = '';
 
@@ -243,7 +329,6 @@
                 li.className = `task-item glass p-4 rounded-3xl flex items-center gap-3 border border-[var(--border)] shadow-sm ${t.category} ${t.done ? 'done' : ''}`;
                 li.dataset.id = t.id;
                 
-                // Construcción de Etiquetas Coloridas
                 const isAM = t.turno === 'AM';
                 const isFija = t.tipo === 'fija';
 
@@ -266,9 +351,9 @@
                             ${badgeTipo}
                         </div>
                     </div>
-                    <div class="flex gap-1">
-                        <button onclick="moveTaskToNextDay('${t.id}')" class="p-2 bg-orange-100 dark:bg-orange-900/30 text-orange-500 rounded-xl text-xs" title="Pasar a mañana">🚚</button>
-                        <button onclick="deleteTask('${t.id}')" class="p-2 bg-red-100 dark:bg-red-900/30 text-red-500 rounded-xl text-xs">×</button>
+                    <div class="flex flex-col gap-1">
+                        <button onclick="moveTaskToNextDay('${t.id}')" class="p-1.5 bg-orange-100 dark:bg-orange-900/30 text-orange-500 rounded-lg text-xs" title="Pasar a mañana">🚚</button>
+                        <button onclick="deleteTask('${t.id}')" class="p-1.5 bg-red-100 dark:bg-red-900/30 text-red-500 rounded-lg text-xs">×</button>
                     </div>
                 `;
                 list.appendChild(li);
@@ -276,6 +361,38 @@
             updateMascot(filteredTasks);
         }
 
+        // --- RENDER COMPRAS ---
+        function renderCompras() {
+            const list = document.getElementById('compras-list');
+            list.innerHTML = '';
+
+            const sorted = compras.sort((a, b) => (a.done === b.done) ? 0 : a.done ? 1 : -1);
+
+            sorted.forEach(c => {
+                const li = document.createElement('li');
+                li.className = `compra-item glass p-4 rounded-3xl flex items-center gap-3 border border-[var(--border)] shadow-sm ${c.done ? 'done' : ''}`;
+                
+                const emojiDestino = c.destino === 'Casa' ? '🏡' : '👤';
+                const badgeUrgencia = c.urgencia === 'Necesidad' 
+                    ? '<span class="px-2 py-0.5 rounded-md text-[9px] font-black bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400">⚠️ Urgente</span>'
+                    : '<span class="px-2 py-0.5 rounded-md text-[9px] font-black bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400">✨ Deseo</span>';
+
+                li.innerHTML = `
+                    <input type="checkbox" ${c.done ? 'checked' : ''} onclick="toggleCompra('${c.id}', ${c.done})" class="w-6 h-6 rounded-lg accent-pink-500">
+                    <div class="flex-1">
+                        <div class="text-sm font-bold leading-tight">${c.text}</div>
+                        <div class="flex gap-1.5 mt-1.5 items-center">
+                            <span class="text-[10px] font-black text-slate-500 dark:text-slate-400 mr-1">${emojiDestino} ${c.destino}</span>
+                            ${badgeUrgencia}
+                        </div>
+                    </div>
+                    <button onclick="deleteCompra('${c.id}')" class="p-2 bg-red-100 dark:bg-red-900/30 text-red-500 rounded-xl text-xs">×</button>
+                `;
+                list.appendChild(li);
+            });
+        }
+
+        // --- GESTIÓN DE MASCOTAS ---
         function updateMascot(dayTasks) {
             const total = dayTasks.length;
             const done = dayTasks.filter(t => t.done).length;
